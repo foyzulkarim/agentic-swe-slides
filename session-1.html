@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 1 — Agentic Software Engineering</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --text: #e8e6f0;
+    --text-dim: #8a88a0;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --accent-glow: rgba(249,115,22,0.15);
+    --blue: #60a5fa;
+    --green: #4ade80;
+    --purple: #c084fc;
+    --pink: #f472b6;
+    --cyan: #22d3ee;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 60px 80px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .slide.active { display: flex; }
+
+  .slide-header {
+    position: fixed;
+    top: 3px;
+    left: 0; right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    z-index: 90;
+  }
+  .header-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .header-author {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.7;
+  }
+
+  .slide-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    z-index: 90;
+  }
+  .footer-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .footer-link:hover { opacity: 1; color: var(--cyan); }
+  .footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .footer-nav button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .footer-nav button:hover { border-color: var(--accent); background: var(--surface2); }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 100;
+  }
+
+  .slide h1 {
+    font-family: var(--serif);
+    font-size: 52px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+  .slide h2 {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .slide h3 {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .slide p {
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    max-width: 720px;
+  }
+  .slide p.large {
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Title slide */
+  .slide-title {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background:
+      radial-gradient(ellipse 600px 400px at 30% 80%, rgba(249,115,22,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 500px at 70% 20%, rgba(96,165,250,0.04) 0%, transparent 70%),
+      var(--bg);
+  }
+  .slide-title h1 { font-size: 64px; max-width: 900px; }
+  .slide-title .subtitle {
+    font-size: 20px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-weight: 300;
+  }
+  .slide-title .tagline {
+    margin-top: 40px;
+    padding: 14px 28px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .card-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+    flex: 1;
+  }
+  .card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card .card-icon { font-size: 28px; margin-bottom: 14px; display: block; }
+  .card .card-title {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .card .card-body {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+
+  .section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section-badge.s1 { background: rgba(249,115,22,0.12); color: var(--accent); }
+  .section-badge.s2 { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .section-badge.s3 { background: rgba(74,222,128,0.12); color: var(--green); }
+  .section-badge.s4 { background: rgba(192,132,252,0.12); color: var(--purple); }
+  .section-badge.s5 { background: rgba(244,114,182,0.12); color: var(--pink); }
+  .section-badge.s6 { background: rgba(34,211,238,0.12); color: var(--cyan); }
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--green);
+    margin-top: 16px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  .code-block .dim { color: var(--text-dim); }
+  .code-block .flag { color: var(--blue); }
+  .code-block .str { color: var(--accent2); }
+
+  .concept-list {
+    list-style: none;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .concept-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .concept-list .bullet {
+    flex-shrink: 0;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 8px;
+  }
+  .concept-list strong { color: var(--text); font-weight: 600; }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 20px 28px;
+    background: var(--accent-glow);
+    border-radius: 0 12px 12px 0;
+    margin-top: 24px;
+  }
+  .callout p {
+    font-size: 17px;
+    color: var(--text);
+    font-style: italic;
+    max-width: 100%;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 20px;
+    flex: 1;
+  }
+
+  kbd {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 2px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  .key-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  /* Speaker notes */
+  .speaker-notes {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.95);
+    border-top: 2px solid var(--accent);
+    padding: 20px 40px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    z-index: 200;
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+  .speaker-notes.visible { display: block; }
+  .speaker-notes strong { color: var(--accent); }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .flow-step {
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+  }
+  .flow-arrow {
+    font-size: 20px;
+    color: var(--text-dim);
+    padding: 0 8px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 32px;
+  }
+  .stat { text-align: center; }
+  .stat .stat-value {
+    font-family: var(--serif);
+    font-size: 48px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 0: Title -->
+  <div class="slide slide-title active" data-index="0">
+    <h3>Session 1</h3>
+    <h1>Agentic Software<br>Engineering</h1>
+    <p class="subtitle">Foundations · Configuration · Skills</p>
+    <div class="tagline">A guide to disciplined agentic development</div>
+  </div>
+
+  <!-- SLIDE 1: The Industry Has Shifted -->
+  <div class="slide" data-index="1">
+    <div class="section-badge s1">● The Shift</div>
+    <h2>The industry has already shifted</h2>
+    <p class="large" style="margin-top:16px;">This is no longer an opinion. The disciplined, phase-driven approach to agentic coding is now the industry standard.</p>
+    <div class="two-col" style="margin-top:32px;">
+      <div class="card" style="border-top: 3px solid var(--accent);">
+        <div class="card-title" style="font-size:15px; color:var(--text-dim);">Foyzul Karim — Senior Software Engineer</div>
+        <div style="font-family:var(--mono); font-size:13px; margin-top:12px; color:var(--green); line-height:1.8;">
+          1. Requirement Engineering<br>
+          2. System Architecture<br>
+          3. Task Generation<br>
+          4. TDD Implementation<br>
+          5. Review & Merge
+        </div>
+      </div>
+      <div class="card" style="border-top: 3px solid var(--blue);">
+        <div class="card-title" style="font-size:15px; color:var(--text-dim);">Addy Osmani — Google AI Director</div>
+        <div style="font-family:var(--mono); font-size:13px; margin-top:12px; color:var(--blue); line-height:1.8;">
+          1. Define (Idea Refine, Spec)<br>
+          2. Plan (Task Breakdown)<br>
+          3. Build (Incremental, TDD)<br>
+          4. Verify (Test, Debug)<br>
+          5. Review (Quality, Security)<br>
+          6. Ship (Git, CI/CD, Docs)
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <p>Same methodology, same phases, independently arrived at. This is how software is built now.</p>
+    </div>
+  </div>
+
+  <!-- NEW: 5-Phase Overview (B1 — breathe slide) -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Framework</div>
+    <h2>The 5-Phase Agentic Framework</h2>
+    <p style="margin-top:8px;">Code is generated. Architecture is engineered.</p>
+    <div class="flow" style="margin-top:48px;">
+      <div class="flow-step" style="background:rgba(249,115,22,0.15); color:var(--accent);">Requirement<br>Engineering</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(96,165,250,0.15); color:var(--blue);">System<br>Architecture</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(74,222,128,0.15); color:var(--green);">Task<br>Generation</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(192,132,252,0.15); color:var(--purple);">TDD<br>Implementation</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(244,114,182,0.15); color:var(--pink);">Review<br>&amp; Merge</div>
+    </div>
+  </div>
+
+  <!-- NEW: Phase 1 — Requirement Engineering -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Phase 1 of 5</div>
+    <h2 style="color:var(--accent); margin-top:8px;">Requirement Engineering</h2>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+      <span style="color:var(--text-dim); font-size:13px; font-family:var(--mono);">Owner:</span>
+      <span style="background:rgba(249,115,22,0.15); color:var(--accent); padding:3px 12px; border-radius:12px; font-size:12px; font-family:var(--mono);">You</span>
+      <span style="color:var(--text-dim); font-size:13px; margin-left:8px;">Deliverable: <strong style="color:var(--text);">Requirements document</strong></span>
+    </div>
+    <div class="callout" style="border-left-color:var(--accent); background:rgba(249,115,22,0.08); margin-top:20px;">
+      <p style="font-style:normal; font-family:var(--mono); font-size:14px; color:var(--accent);">Gate: Can I explain every requirement to a non-technical stakeholder without ambiguity?</p>
+    </div>
+    <ul class="concept-list" style="margin-top:24px;">
+      <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Clarify before you code.</strong> Vague requirements produce vague code. The spec is Claude's starting point — garbage in, broken out.</span></li>
+      <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Include acceptance criteria.</strong> Each requirement needs a done signal that a non-technical stakeholder can verify.</span></li>
+      <li><span class="bullet" style="background:var(--accent)"></span><span><strong>You steer, Claude doesn't guess.</strong> This is the only phase where Claude Code is hands-off. Business context is yours.</span></li>
+    </ul>
+  </div>
+
+  <!-- NEW: Phase 2 — System Architecture -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Phase 2 of 5</div>
+    <h2 style="color:var(--blue); margin-top:8px;">System Architecture</h2>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+      <span style="color:var(--text-dim); font-size:13px; font-family:var(--mono);">Owner:</span>
+      <span style="background:rgba(96,165,250,0.15); color:var(--blue); padding:3px 12px; border-radius:12px; font-size:12px; font-family:var(--mono);">You + Claude</span>
+      <span style="color:var(--text-dim); font-size:13px; margin-left:8px;">Deliverable: <strong style="color:var(--text);">Architecture document</strong></span>
+    </div>
+    <div class="callout" style="border-left-color:var(--blue); background:rgba(96,165,250,0.08); margin-top:20px;">
+      <p style="font-style:normal; font-family:var(--mono); font-size:14px; color:var(--blue);">Gate: Could another senior developer implement this from the architecture doc alone?</p>
+    </div>
+    <ul class="concept-list" style="margin-top:24px;">
+      <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Define data models, API contracts, module boundaries.</strong> Architecture changes mid-build mean starting over.</span></li>
+      <li><span class="bullet" style="background:var(--blue)"></span><span><strong>You design, Claude validates.</strong> Use Claude to stress-test your design — edge cases, inconsistencies, missing pieces.</span></li>
+      <li><span class="bullet" style="background:var(--blue)"></span><span><strong>The document is the interface.</strong> Everything Claude generates in later phases is bounded by what you define here.</span></li>
+    </ul>
+  </div>
+
+  <!-- NEW: Phase 3 — Task Generation -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Phase 3 of 5</div>
+    <h2 style="color:var(--green); margin-top:8px;">Task Generation</h2>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+      <span style="color:var(--text-dim); font-size:13px; font-family:var(--mono);">Owner:</span>
+      <span style="background:rgba(74,222,128,0.15); color:var(--green); padding:3px 12px; border-radius:12px; font-size:12px; font-family:var(--mono);">Claude</span>
+      <span style="color:var(--text-dim); font-size:13px; margin-left:8px;">Input: your architecture · Deliverable: <strong style="color:var(--text);">Task list with acceptance criteria</strong></span>
+    </div>
+    <div class="callout" style="border-left-color:var(--green); background:rgba(74,222,128,0.08); margin-top:20px;">
+      <p style="font-style:normal; font-family:var(--mono); font-size:14px; color:var(--green);">Gate: Does every task have clear acceptance criteria that can be verified by a test?</p>
+    </div>
+    <ul class="concept-list" style="margin-top:24px;">
+      <li><span class="bullet" style="background:var(--green)"></span><span><strong>Feed your architecture doc to Claude.</strong> The more precise your architecture, the more precise the task list.</span></li>
+      <li><span class="bullet" style="background:var(--green)"></span><span><strong>Each task has a clear done signal.</strong> Acceptance criteria that can become a failing test before any code is written.</span></li>
+      <li><span class="bullet" style="background:var(--green)"></span><span><strong>Tasks are the contract for Phase 4.</strong> Claude Code implements against these — vague tasks produce vague PRs.</span></li>
+    </ul>
+  </div>
+
+  <!-- NEW: Phase 4 — TDD Implementation -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Phase 4 of 5</div>
+    <h2 style="color:var(--purple); margin-top:8px;">TDD Implementation</h2>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+      <span style="color:var(--text-dim); font-size:13px; font-family:var(--mono);">Owner:</span>
+      <span style="background:rgba(192,132,252,0.15); color:var(--purple); padding:3px 12px; border-radius:12px; font-size:12px; font-family:var(--mono);">Claude</span>
+      <span style="color:var(--text-dim); font-size:13px; margin-left:8px;">Input: your tasks · Deliverable: <strong style="color:var(--text);">Working code with tests</strong></span>
+    </div>
+    <div class="callout" style="border-left-color:var(--purple); background:rgba(192,132,252,0.08); margin-top:20px;">
+      <p style="font-style:normal; font-family:var(--mono); font-size:14px; color:var(--purple);">Gate: Do all tests pass and does the code match the architecture decisions from Phase 2?</p>
+    </div>
+    <ul class="concept-list" style="margin-top:24px;">
+      <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Tests first, then code.</strong> Claude writes a failing test, then makes it pass. No test means no done.</span></li>
+      <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Your tasks are the guardrails.</strong> Claude operates within the scope you defined — one task at a time.</span></li>
+      <li><span class="bullet" style="background:var(--purple)"></span><span><strong>You are the reviewer at every gate.</strong> Confirm each passing test before Claude moves to the next task.</span></li>
+    </ul>
+  </div>
+
+  <!-- NEW: Phase 5 — Review & Merge -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Phase 5 of 5</div>
+    <h2 style="color:var(--pink); margin-top:8px;">Review &amp; Merge</h2>
+    <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+      <span style="color:var(--text-dim); font-size:13px; font-family:var(--mono);">Owner:</span>
+      <span style="background:rgba(244,114,182,0.15); color:var(--pink); padding:3px 12px; border-radius:12px; font-size:12px; font-family:var(--mono);">You + Claude</span>
+      <span style="color:var(--text-dim); font-size:13px; margin-left:8px;">Deliverable: <strong style="color:var(--text);">Approved PR</strong></span>
+    </div>
+    <div class="callout" style="border-left-color:var(--pink); background:rgba(244,114,182,0.08); margin-top:20px;">
+      <p style="font-style:normal; font-family:var(--mono); font-size:14px; color:var(--pink);">Gate: Would I mass-merge this without reading it? If yes, I haven't reviewed properly.</p>
+    </div>
+    <ul class="concept-list" style="margin-top:24px;">
+      <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Read every diff.</strong> Never merge what you haven't understood. The PR is a record of everything the code does.</span></li>
+      <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Claude surfaces issues, you decide.</strong> Use Claude to check for edge cases, security gaps, test coverage — but the approve is yours.</span></li>
+      <li><span class="bullet" style="background:var(--pink)"></span><span><strong>The gate question is the discipline.</strong> If you'd merge without reading, the framework has broken down.</span></li>
+    </ul>
+  </div>
+
+  <!-- NEW: Three Scenarios (B3) -->
+  <div class="slide" data-index="0">
+    <div class="section-badge s1">● Framework</div>
+    <h2>Three Scenarios, One Framework</h2>
+    <p style="margin-top:8px;">The entry point changes. The discipline doesn't.</p>
+    <div class="card-grid cols-3" style="margin-top:32px; flex:1;">
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <div class="card-title" style="color:var(--accent); font-size:17px;">Greenfield</div>
+        <div class="card-body" style="margin-top:12px;"><strong>Enter at Phase 1.</strong> You have a blank slate. Start with requirements — define the problem before the solution.</div>
+        <div style="margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--text-dim);">Phase 1 → 2 → 3 → 4 → 5</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <div class="card-title" style="color:var(--blue); font-size:17px;">New Feature</div>
+        <div class="card-body" style="margin-top:12px;"><strong>Enter at Phase 2.</strong> The system exists. Understand the current architecture first, then design how your feature fits.</div>
+        <div style="margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--text-dim);">Phase 2 → 3 → 4 → 5</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <div class="card-title" style="color:var(--green); font-size:17px;">Bugfix</div>
+        <div class="card-body" style="margin-top:12px;"><strong>Phase 1 becomes root cause analysis.</strong> Before writing any fix, understand why the bug exists and what would prove it's fixed.</div>
+        <div style="margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--text-dim);">Phase 1 (RCA) → 3 → 4 → 5</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: What is Claude Code? -->
+  <div class="slide" data-index="3">
+    <div class="section-badge s1">● Claude Code</div>
+    <h2>Claude Code is not a chatbot</h2>
+    <p>The framework tells you how to build. Claude Code is the tool that executes it — a terminal-native agent that reads your entire codebase, takes real actions, and works within the boundaries you set.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--accent)">What it actually does</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Reads your codebase.</strong> Not just one file — the full project context, architecture, and conventions.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Takes real actions.</strong> Edits files, runs tests, executes shell commands, commits to git — autonomously.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Reasons across phases.</strong> It can spec, plan, implement, test, and review — if you direct it correctly.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Works with your tools.</strong> Terminal, VS Code, JetBrains, CI/CD — meets you where you already work.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--accent)">What it needs from you</h3>
+        <ul class="concept-list">
+          <li style="border-left:3px solid var(--accent); padding-left:12px; background:rgba(249,115,22,0.06); border-radius:0 6px 6px 0; margin-left:-12px;"><span class="bullet" style="background:var(--accent)"></span><span><strong style="color:var(--accent);">Clear requirements.</strong> Claude Code can't guess business context. Your spec is its starting point — vague in, broken out.</span></li>
+          <li style="border-left:3px solid var(--accent); padding-left:12px; background:rgba(249,115,22,0.06); border-radius:0 6px 6px 0; margin-left:-12px;"><span class="bullet" style="background:var(--accent)"></span><span><strong style="color:var(--accent);">Architectural decisions upfront.</strong> Claude generates code within the architecture you define. Changing structure mid-build means starting over.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Well-scoped tasks.</strong> Small, precise tasks with clear acceptance criteria produce mergeable PRs. Large vague tasks produce large vague code.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Your review at every gate.</strong> Claude flags issues — you decide. Never merge what you haven't read.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <p>Claude Code is capable of building almost anything. The constraint is never the tool — it's the clarity of your direction.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Claude Code Anatomy -->
+  <div class="slide" data-index="4">
+    <div class="section-badge s2">● Anatomy</div>
+    <h2>Where does Claude Code live?</h2>
+    <p>Claude Code runs everywhere. Understanding the surfaces helps you pick the right tool for the moment.</p>
+    <div class="card-grid cols-3" style="margin-top:24px;">
+      <div class="card">
+        <span class="card-icon">💻</span>
+        <div class="card-title">Terminal (Primary)</div>
+        <div class="card-body">The original and most powerful surface. Full CLI flags, headless mode, worktrees, all features available. This is where we'll work tonight.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📝</span>
+        <div class="card-title">IDE Extensions</div>
+        <div class="card-body">VS Code extension, JetBrains plugin. Integrated into your editor workflow. Same engine, different interface.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🌐</span>
+        <div class="card-title">Desktop, Web, Mobile</div>
+        <div class="card-body">Desktop app, claude.ai/code (web), iOS. For quick interactions when you're not in a full dev session.</div>
+      </div>
+    </div>
+    <div class="code-block"><span class="dim"># Install (native, auto-updates)</span>
+curl -fsSL https://claude.ai/install.sh | bash
+
+<span class="dim"># Verify everything works</span>
+claude doctor
+
+<span class="dim"># Check your version</span>
+claude --version</div>
+  </div>
+
+  <!-- SLIDE: Setup Sequence -->
+  <div class="slide" data-index="5">
+    <div class="section-badge s2">● Setup</div>
+    <h2>Before your first prompt: the setup sequence</h2>
+    <p>Claude Code reads its instructions from several layers. Getting this right once means every session starts with Claude already knowing your project, your standards, and your workflows.</p>
+    <div class="flow" style="margin-top:36px;">
+      <div class="flow-step" style="background:rgba(249,115,22,0.15); color:var(--accent);">Install<br><span style="font-size:11px; color:var(--text-dim); font-weight:400;">claude doctor</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(96,165,250,0.15); color:var(--blue);">Settings<br><span style="font-size:11px; color:var(--text-dim); font-weight:400;">~/.claude/settings.json</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(74,222,128,0.15); color:var(--green);">CLAUDE.md<br><span style="font-size:11px; color:var(--text-dim); font-weight:400;">project instructions</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(192,132,252,0.15); color:var(--purple);">Skills<br><span style="font-size:11px; color:var(--text-dim); font-weight:400;">on-demand workflows</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(74,222,128,0.15); color:var(--green); border:1px solid rgba(74,222,128,0.4);">Start coding</div>
+    </div>
+    <div class="card-grid cols-2" style="margin-top:32px;">
+      <div class="card">
+        <div class="card-title">Configuration — once per project</div>
+        <div class="card-body">Settings and CLAUDE.md are set up once and persist across all sessions. Get them right and you stop fighting the tool at the start of every session.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Skills — once per workflow type</div>
+        <div class="card-body">Skills are written once and used indefinitely. They encode your team's repeatable workflows — review checklists, test patterns, deployment steps.</div>
+      </div>
+    </div>
+    <p style="margin-top:20px; font-family:var(--mono); font-size:13px; color:var(--text-dim);">The next two slides cover Settings and CLAUDE.md. Skills come after the break — they're a different kind of layer.</p>
+  </div>
+
+  <!-- SLIDE 4: Settings Architecture -->
+  <div class="slide" data-index="6">
+    <div class="section-badge s2">● Settings</div>
+    <h2>The 5-Level Settings Hierarchy</h2>
+    <p>Claude Code loads settings from five levels. <span style="color:var(--accent); font-weight:600;">Higher levels override lower ones</span> — and <span style="color:var(--green); font-weight:600;">all five load on every startup</span>.</p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:24px;">
+      <div class="card" style="border-left:4px solid var(--pink); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--pink); width:30px;">5</div>
+        <div><div class="card-title" style="margin:0;">Managed</div><div class="card-body" style="margin-top:4px;">Enterprise/OS-level. Cannot be overridden by users.</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--purple); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--purple); width:30px;">4</div>
+        <div><div class="card-title" style="margin:0;">CLI Arguments</div><div class="card-body" style="margin-top:4px;"><code style="color:var(--green)">--model</code>, <code style="color:var(--green)">--effort</code>, <code style="color:var(--green)">--permission-mode</code> — per-session overrides.</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--accent); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--accent); width:30px;">3</div>
+        <div><div class="card-title" style="margin:0;">Local — <code style="color:var(--green)">.claude/settings.local.json</code></div><div class="card-body" style="margin-top:4px;">Per-project, gitignored. Your personal overrides for this project.</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--blue); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--blue); width:30px;">2</div>
+        <div><div class="card-title" style="margin:0;">Project — <code style="color:var(--green)">.claude/settings.json</code></div><div class="card-body" style="margin-top:4px;">Committed to git. Shared with your team.</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--green); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--green); width:30px;">1</div>
+        <div><div class="card-title" style="margin:0;">User — <code style="color:var(--green)">~/.claude/settings.json</code></div><div class="card-body" style="margin-top:4px;">Your global defaults across all projects.</div></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Claude Code loads <strong>all five levels on every startup</strong> and merges the values together. Higher levels win — a CLI flag overrides a project setting, which overrides a user default. Understanding this prevents "why isn't my config working?" moments.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Settings Override Quiz -->
+  <div class="slide" data-index="7">
+    <div class="section-badge s2">● Settings</div>
+    <h2>Quick Check: Which value wins?</h2>
+    <p>The same setting is defined at three levels. <strong>Which model does Claude Code actually use when you launch it?</strong></p>
+    <div style="display:flex; gap:16px; margin-top:24px;">
+      <div class="card" style="flex:1; border-top:3px solid var(--green);">
+        <div style="font-family:var(--mono); font-size:11px; color:var(--green); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Level 1 · User</div>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px;">~/.claude/settings.json</div>
+        <div style="font-family:var(--mono); font-size:13px; background:var(--surface2); border-radius:8px; padding:14px; line-height:1.8;">
+          {<br>&nbsp;&nbsp;"model": "<span style="color:var(--green)">claude-sonnet-4-6</span>"<br>}
+        </div>
+      </div>
+      <div class="card" style="flex:1; border-top:3px solid var(--blue);">
+        <div style="font-family:var(--mono); font-size:11px; color:var(--blue); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Level 2 · Project</div>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px;">.claude/settings.json</div>
+        <div style="font-family:var(--mono); font-size:13px; background:var(--surface2); border-radius:8px; padding:14px; line-height:1.8;">
+          {<br>&nbsp;&nbsp;"model": "<span style="color:var(--blue)">claude-opus-4-7</span>"<br>}
+        </div>
+      </div>
+      <div class="card" style="flex:1; border-top:3px solid var(--accent);">
+        <div style="font-family:var(--mono); font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Level 3 · Local</div>
+        <div style="font-family:var(--mono); font-size:11px; color:var(--text-dim); margin-bottom:10px;">.claude/settings.local.json</div>
+        <div style="font-family:var(--mono); font-size:13px; background:var(--surface2); border-radius:8px; padding:14px; line-height:1.8;">
+          {<br>&nbsp;&nbsp;"model": "<span style="color:var(--accent)">claude-haiku-4-5</span>"<br>}
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:28px; padding:20px 24px; background:var(--surface2); border-radius:12px; border:1px solid var(--border);">
+      <p style="font-size:17px; font-weight:600; color:var(--text);">Which model does Claude Code use?</p>
+      <button onclick="document.getElementById('quiz-answer-settings').style.display='block'; this.style.display='none';"
+              style="margin-top:14px; padding:10px 28px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-family:var(--mono); font-size:13px; font-weight:600; cursor:pointer; letter-spacing:0.5px; transition:opacity 0.2s;"
+              onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+        Reveal Answer
+      </button>
+    </div>
+    <div id="quiz-answer-settings" style="display:none; margin-top:16px;">
+      <div class="callout" style="border-color:var(--green); background:rgba(74,222,128,0.07);">
+        <p><strong style="color:var(--green); font-size:16px;">claude-haiku-4-5</strong> — from <code style="color:var(--green)">.claude/settings.local.json</code> (Level 3)</p>
+        <p style="margin-top:10px; color:var(--text-dim);">Level 3 (Local) overrides Level 2 (Project), which overrides Level 1 (User). The highest applicable level wins — no merging, just a clean override down the chain.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: CLAUDE.md Mastery -->
+  <div class="slide" data-index="8">
+    <div class="section-badge s3">● CLAUDE.md</div>
+    <h2>CLAUDE.md — Your most powerful lever</h2>
+    <p>A well-configured Sonnet outperforms a poorly configured Opus. This file is where the leverage lives.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--green)">The Hierarchy</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.9;">
+<span class="dim"># 1. User-level (all your projects)</span>
+~/.claude/CLAUDE.md
+
+<span class="dim"># 2. Project root (committed, team-shared)</span>
+./CLAUDE.md
+
+<span class="dim"># 3. Domain rules (conditional loading)</span>
+./.claude/rules/*.md
+<span class="dim">  └── paths: ["src/api/**"]</span>
+
+<span class="dim"># 4. Subdirectory (lazy-loaded)</span>
+./src/api/CLAUDE.md
+
+<span class="dim"># 5. Private (gitignored, your preferences)</span>
+./CLAUDE.local.md</div>
+      </div>
+      <div>
+        <h3 style="color:var(--green)">The Rules</h3>
+        <div style="display:flex; align-items:center; gap:16px; padding:12px 16px; background:rgba(249,115,22,0.1); border-radius:10px; border:1px solid rgba(249,115,22,0.3); margin-bottom:14px;">
+          <div style="font-family:var(--mono); font-size:44px; font-weight:700; color:var(--accent); line-height:1; flex-shrink:0;">80</div>
+          <div>
+            <div style="font-family:var(--mono); font-size:12px; color:var(--accent); text-transform:uppercase; letter-spacing:1px;">line limit</div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:4px;">Over 200 = reduced adherence. Anthropic's own teams target 60.</div>
+          </div>
+        </div>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Be specific, not vague.</strong> "Use 2-space indent in TypeScript" beats "format code nicely."</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Use <code style="color:var(--green)">@path</code> imports.</strong> Reference additional files without bloating the root file.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Use <code style="color:var(--green)">paths:</code> frontmatter</strong> in <code style="color:var(--green)">.claude/rules/</code> — rules load only when Claude works in matching directories.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Critical instructions at the top.</strong> Models over-attend to beginning and end of context (lost-in-the-middle effect).</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Unlike settings (which override), CLAUDE.md files <strong>concatenate</strong> — all applicable ones load and stack into context together. User-level and project root load every session. Rules files load only when paths match. Subdirectory files load lazily. This is why the 80-line limit matters: the total across all loaded files is what Claude sees.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Rules -->
+  <div class="slide" data-index="8">
+    <div class="section-badge s3">● CLAUDE.md — Rules</div>
+    <h2>Rules — conditional instructions for specific directories</h2>
+    <p>Rules are CLAUDE.md extensions that load automatically only when Claude works in a matching directory. The middle ground between always-loaded and on-demand.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--green)">How rules work</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.9;">
+<span class="dim"># .claude/rules/api.md</span>
+<span class="flag">---</span>
+<span class="flag">description:</span> <span class="str">API development rules</span>
+<span class="flag">paths:</span>
+<span class="str">  - "src/api/**"</span>
+<span class="str">  - "src/routes/**"</span>
+<span class="flag">---</span>
+
+<span class="dim"># These rules only load when Claude</span>
+<span class="dim"># is editing files in src/api/ or</span>
+<span class="dim"># src/routes/ — not for frontend work</span>
+
+Always validate request bodies with zod.
+Return 400 for validation errors, never 500.
+Never expose internal error messages.</div>
+      </div>
+      <div>
+        <h3 style="color:var(--green)">Two ways to use rules</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>With <code style="color:var(--green)">paths:</code></strong> — loads only when Claude edits matching files. Path-conditional. Use for domain-specific conventions (API, frontend, tests).</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Without <code style="color:var(--green)">paths:</code></strong> — loads every session, unconditionally. Use for project-wide topics you want to keep as separate, named files rather than one big CLAUDE.md.</span></li>
+        </ul>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-top:14px; font-family:var(--mono); font-size:12px; line-height:1.9;">
+          <span style="color:var(--text-dim)"># Matteo Collina's typescript.md</span><br>
+          <span style="color:var(--flag)">---</span><br>
+          <span style="color:var(--flag)">name:</span> <span style="color:var(--green)">typescript</span><br>
+          <span style="color:var(--flag)">description:</span> <span style="color:var(--green)">TypeScript config and type stripping</span><br>
+          <span style="color:var(--flag)">metadata:</span><br>
+          <span style="color:var(--text-dim)">  tags: typescript, ts-node   <em style="color:var(--text-dim)">← his own notes, ignored by Claude</em></span><br>
+          <span style="color:var(--flag)">---</span><br>
+          <span style="color:var(--text-dim)">  <em>no paths: → loads every session</em></span>
+        </div>
+        <div class="divider" style="margin:20px 0;"></div>
+        <h3 style="color:var(--green)">Practical examples</h3>
+        <div style="font-family:var(--mono); font-size:13px; line-height:1.9; color:var(--text-dim);">
+          <span style="color:var(--green)">src/api/**</span>     → REST conventions, auth rules<br>
+          <span style="color:var(--blue)">src/components/**</span> → React patterns, styling rules<br>
+          <span style="color:var(--purple)">tests/**</span>        → Test structure, mock conventions<br>
+          <span style="color:var(--pink)">migrations/**</span>    → DB safety rules, no destructive ops
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Rules solve two problems: <strong>conditional loading</strong> (path-scoped) and <strong>organisational modularity</strong> (no paths, always loads). Either way, they keep your root CLAUDE.md lean and focused.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: CLAUDE.md vs Rules — When to Use What -->
+  <div class="slide" data-index="9">
+    <div class="section-badge s3">● CLAUDE.md vs Rules</div>
+    <h2>CLAUDE.md or a Rule — how to decide</h2>
+    <p>One question determines it: <strong style="color:var(--text);">does this instruction need to be true everywhere, or only in certain parts of the codebase?</strong></p>
+    <div class="two-col" style="margin-top:24px;">
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <div class="card-title" style="font-size:18px; margin-bottom:16px;">Put it in <code style="color:var(--accent)">CLAUDE.md</code> when…</div>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span>It applies to <strong>every file</strong> in the project — tech stack, language version, package manager.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span>It's a <strong>team-wide standard</strong> — commit message format, PR checklist, branch naming.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span>Claude must know it <strong>before touching anything</strong> — architecture decisions, off-limits files, deployment constraints.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span>It would be <strong>dangerous to forget</strong> — "never delete the users table", "always use the internal logger".</span></li>
+        </ul>
+        <div style="margin-top:20px; font-family:var(--mono); font-size:12px; color:var(--text-dim); line-height:1.8;">
+          <span style="color:var(--accent)">Examples:</span><br>
+          We use Node.js 22 + TypeScript 5.8<br>
+          All PRs need a test for every new path<br>
+          Never commit .env files
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <div class="card-title" style="font-size:18px; margin-bottom:16px;">Put it in a <code style="color:var(--green)">Rule</code> when…</div>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--green)"></span><span>It only matters in <strong>specific directories</strong> — API conventions, frontend patterns, DB migration rules.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span>Loading it for <strong>unrelated tasks wastes context</strong> — React component rules don't help when editing a migration.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span>You want to <strong>organise CLAUDE.md by topic</strong> — break one big file into named, focused rule files (even without <code style="color:var(--green)">paths:</code>).</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span>The instruction is <strong>too long</strong> to fit in CLAUDE.md without pushing it over 80 lines.</span></li>
+        </ul>
+        <div style="margin-top:20px; font-family:var(--mono); font-size:12px; color:var(--text-dim); line-height:1.8;">
+          <span style="color:var(--green)">Examples:</span><br>
+          src/api/** → validate with Zod, return {data} | {error}<br>
+          tests/** → one assertion per test, no mocks on DB<br>
+          typescript.md → TS config rules (no paths, always loads)
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>If you're unsure — start in CLAUDE.md. When it goes over 60 lines, look at what you can extract into a rule. That's the refactoring signal.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Claude Code Siblings -->
+  <div class="slide" data-index="8">
+    <div class="section-badge s3">● The Siblings</div>
+    <h2>What about the other AI coding tools?</h2>
+    <p>Every serious AI coding tool needs the same thing: a place for persistent project instructions. Claude Code's system is the most sophisticated — but the mental model transfers everywhere.</p>
+    <div style="margin-top:24px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:1px;"></div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:1px; background:var(--surface); border-radius:8px 0 0 0;">Instructions file</div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:1px; background:var(--surface);">Conditional rules</div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:1px; background:var(--surface); border-radius:0 8px 0 0;">On-demand skills</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:rgba(249,115,22,0.1); border-radius:8px 0 0 8px; color:var(--accent); font-weight:600;">Claude Code</div>
+        <div style="padding:12px 14px; background:var(--surface); color:var(--green);">CLAUDE.md</div>
+        <div style="padding:12px 14px; background:var(--surface); color:var(--green);">.claude/rules/*.md</div>
+        <div style="padding:12px 14px; background:var(--surface); border-radius:0 8px 8px 0; color:var(--green);">.claude/skills/*/SKILL.md</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:8px 0 0 8px; color:var(--text);">Opencode</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">AGENTS.md</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--text-dim);">—</div>
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--text-dim);">—</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:8px 0 0 8px; color:var(--text);">Codex (OpenAI)</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">AGENTS.md</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--text-dim);">—</div>
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--text-dim);">—</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:8px 0 0 8px; color:var(--text);">Gemini CLI</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">GEMINI.md</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--text-dim);">—</div>
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--text-dim);">—</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:8px 0 0 8px; color:var(--text);">GitHub Copilot</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">.github/copilot-instructions.md</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--text-dim);">—</div>
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--text-dim);">—</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:8px 0 0 8px; color:var(--text);">Cursor</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">.cursorrules</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">.cursor/rules/*.mdc</div>
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--text-dim);">—</div>
+      </div>
+      <div style="display:grid; grid-template-columns:160px 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:13px;">
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:8px 0 0 8px; color:var(--text);">Windsurf</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--blue);">.windsurfrules</div>
+        <div style="padding:12px 14px; background:var(--surface2); color:var(--text-dim);">—</div>
+        <div style="padding:12px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--text-dim);">—</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:24px;">
+      <p>The skill transfers. Whatever tool your team uses, the question is the same: <strong style="color:var(--text);">where does this tool read its project instructions, and am I giving it good ones?</strong> Claude Code is just the one that took the architecture furthest — settings, rules, skills, hooks, worktrees. Others will catch up.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Section Break — Setup Complete → How You Work -->
+  <div class="slide" data-index="8" style="justify-content:center; align-items:center; text-align:center; background: radial-gradient(ellipse 500px 400px at 50% 50%, rgba(74,222,128,0.06) 0%, transparent 70%), var(--bg);">
+    <div class="section-badge s3" style="margin:0 auto 20px;">● Part 2</div>
+    <h1 style="font-size:52px; max-width:800px;">Configuration done.<br>Now: how you work.</h1>
+    <p class="large" style="text-align:center; margin-top:20px; max-width:640px;">Settings and CLAUDE.md are one-time setup. What follows are the daily habits that determine whether every session is productive or chaotic.</p>
+    <div style="display:flex; gap:24px; margin-top:48px; justify-content:center;">
+      <div class="card" style="min-width:200px; border-top:2px solid var(--green);">
+        <div class="card-body" style="text-align:center;">Session<br>Hygiene</div>
+      </div>
+      <div class="card" style="min-width:200px; border-top:2px solid var(--pink);">
+        <div class="card-body" style="text-align:center;">Skills &amp;<br>Context</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: Session Hygiene -->
+  <div class="slide" data-index="9">
+    <div class="section-badge s4">● Session Hygiene</div>
+    <h2>Work clean, think clearly</h2>
+    <p>Session hygiene matters more than prompting technique. These habits prevent long sessions from feeling "stupid."</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card">
+        <span class="card-icon">🧹</span>
+        <div class="card-title">One Session, One Task</div>
+        <div class="card-body">Start <kbd>/clear</kbd> between unrelated tasks. One session per PR. Context compounding means costs grow faster than expected.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📊</span>
+        <div class="card-title">Know Your Context</div>
+        <div class="card-body"><kbd>/context</kbd> — where are your tokens going?<br><kbd>/cost</kbd> — how much are you spending?<br><kbd>/compact</kbd> — manually compress at natural checkpoints.</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🧠</span>
+        <div class="card-title">Thinking Spectrum</div>
+        <div class="card-body"><code style="color:var(--green)">"think"</code> → <code style="color:var(--blue)">"think hard"</code> → <code style="color:var(--purple)">"think harder"</code> → <code style="color:var(--pink)">"ultrathink"</code><br><br>Use ultrathink for architecture. Think for routine tasks.</div>
+      </div>
+    </div>
+    <div class="card-grid cols-2" style="margin-top:16px;">
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Effort Levels</div>
+        <div class="card-body"><kbd>/effort low</kbd> — quick answers, less thinking<br><kbd>/effort medium</kbd> — balanced (default)<br><kbd>/effort high</kbd> — thorough, careful work<br><kbd>/fast</kbd> — shortcut for low effort</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Plan Mode</div>
+        <div class="card-body"><kbd>Shift+Tab</kbd> to cycle permission modes.<br>Use <strong>Plan mode</strong> for read-only exploration before you start coding. Think first, code second — even inside Claude Code.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: The Context Problem -->
+  <div class="slide" data-index="10">
+    <div class="section-badge s5">● Skills — Why</div>
+    <h2>The context problem — and how skills solve it</h2>
+    <p>Context is your scarcest resource. Every token spent on instructions Claude doesn't need right now is a token that can't hold your codebase, your history, or your task.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--pink)">The problem: CLAUDE.md bloat</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>CLAUDE.md loads every session.</strong> Review checklists, test templates, deployment steps — all 200 lines load even for a 2-line bugfix.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Adherence drops past 80 lines.</strong> Claude's attention isn't uniform. Long files mean later instructions get quietly ignored.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Context fills fast.</strong> Large codebase + bloated CLAUDE.md + conversation history = hitting the limit mid-task.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--green)">The solution: load only what you need</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Skills load on demand.</strong> A <kbd>/review</kbd> skill only loads when you run <kbd>/review</kbd>. Every other session, those tokens are free.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>~15,000 tokens recovered per session.</strong> Moving heavy workflows from CLAUDE.md into skills pays off immediately.</span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>Better adherence.</strong> A focused 50-line skill at the right moment outperforms a 200-line CLAUDE.md that's always present but rarely attended to.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <p>CLAUDE.md for what Claude <strong>always needs to know</strong>. Skills for what Claude needs to know <strong>sometimes</strong>.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Skills Intro -->
+  <div class="slide" data-index="11">
+    <div class="section-badge s5">● Skills</div>
+    <h2>Skills — extend Claude without wasting context</h2>
+    <p>Now that you understand the problem, let's understand the solution — what a skill actually is, where it lives, and how you write one.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--pink)">What is a Skill?</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>On-demand instructions.</strong> Unlike CLAUDE.md (always loaded), skills load only when triggered — by slash command or auto-discovery.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Location:</strong> <code style="color:var(--green)">.claude/skills/&lt;name&gt;/SKILL.md</code> (project), <code style="color:var(--green)">~/.claude/skills/&lt;name&gt;/SKILL.md</code> (user-global), or inside a <strong>marketplace plugin</strong> (installable via <code style="color:var(--green)">/plugin install</code>).</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Auto-discovery:</strong> Claude reads the <code style="color:var(--green)">description</code> field and decides when to activate — LLM reasoning, not keyword matching.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Supporting files:</strong> Templates, examples, scripts can live alongside SKILL.md.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--pink)">SKILL.md Anatomy</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.8;">
+<span class="dim"># .claude/skills/review/SKILL.md</span>
+<span class="flag">---</span>
+<span class="flag">name:</span> <span class="str">review</span>
+<span class="flag">description:</span> <span class="str">Run code review checklist
+  on changed files</span>
+<span class="flag">allowed-tools:</span> <span class="str">Read, Grep, Glob</span>
+<span class="flag">---</span>
+
+Review code changes against our
+team's quality checklist:
+
+1. Error handling completeness
+2. Test coverage for new paths
+3. Breaking API changes
+4. Security implications</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px; border-left-color:var(--purple); background:rgba(192,132,252,0.08);">
+      <p style="font-size:15px;">🎬 <strong style="color:var(--purple)">Think Matrix.</strong> Neo sits in the chair, Morpheus says "I need to show you something" — and in 20 seconds Neo opens his eyes: <em>"I know kung fu."</em> He didn't know it before. He doesn't carry it around after. It loaded exactly when needed, he fought Morpheus, and it was gone. <strong style="color:var(--text)">That's a skill.</strong> You type <kbd>/review</kbd> — Claude loads the review instructions, runs the checklist, done. Next session: zero overhead.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: How Skills Work -->
+  <div class="slide" data-index="12">
+    <div class="section-badge s5">● Skills — Mechanics</div>
+    <h2>How skills actually work</h2>
+    <p>Skills are to CLAUDE.md what functions are to global variables — scoped, purposeful, loaded only when called. Understanding the mechanics makes you a better skill author.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--pink)">The lifecycle</h3>
+        <div style="display:flex; flex-direction:column; margin-top:12px;">
+          <div style="display:flex; align-items:flex-start; gap:14px; padding:10px 0;">
+            <div style="width:28px; height:28px; border-radius:50%; background:rgba(244,114,182,0.2); color:var(--pink); font-family:var(--mono); font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:600;">1</div>
+            <div><strong style="font-size:14px; color:var(--text);">Trigger</strong><span style="font-size:13px; color:var(--text-dim); display:block; margin-top:2px;">User types <kbd>/review</kbd> or Claude decides based on context</span></div>
+          </div>
+          <div style="width:1px; height:10px; background:var(--border); margin-left:14px;"></div>
+          <div style="display:flex; align-items:flex-start; gap:14px; padding:10px 0;">
+            <div style="width:28px; height:28px; border-radius:50%; background:rgba(244,114,182,0.2); color:var(--pink); font-family:var(--mono); font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:600;">2</div>
+            <div><strong style="font-size:14px; color:var(--text);">Load</strong><span style="font-size:13px; color:var(--text-dim); display:block; margin-top:2px;">SKILL.md injected into context — only now, only this skill</span></div>
+          </div>
+          <div style="width:1px; height:10px; background:var(--border); margin-left:14px;"></div>
+          <div style="display:flex; align-items:flex-start; gap:14px; padding:10px 0;">
+            <div style="width:28px; height:28px; border-radius:50%; background:rgba(244,114,182,0.2); color:var(--pink); font-family:var(--mono); font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:600;">3</div>
+            <div><strong style="font-size:14px; color:var(--text);">Execute</strong><span style="font-size:13px; color:var(--text-dim); display:block; margin-top:2px;">Claude follows the skill's instructions using only its allowed tools</span></div>
+          </div>
+          <div style="width:1px; height:10px; background:var(--border); margin-left:14px;"></div>
+          <div style="display:flex; align-items:flex-start; gap:14px; padding:10px 0;">
+            <div style="width:28px; height:28px; border-radius:50%; background:rgba(244,114,182,0.2); color:var(--pink); font-family:var(--mono); font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:600;">4</div>
+            <div><strong style="font-size:14px; color:var(--text);">Return</strong><span style="font-size:13px; color:var(--text-dim); display:block; margin-top:2px;">Skill completes, conversation resumes — context freed</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--pink)">Two activation modes</h3>
+        <div class="card" style="border-left:3px solid var(--accent); margin-bottom:12px; padding:16px 20px;">
+          <div class="card-title" style="margin-bottom:6px;">Explicit — slash command</div>
+          <div class="card-body"><kbd>/review</kbd> loads the review skill immediately. Arguments pass through: <kbd>/review src/auth</kbd> → <code style="color:var(--green)">$ARGUMENTS</code> becomes <code style="color:var(--green)">"src/auth"</code> inside the skill.</div>
+        </div>
+        <div class="card" style="border-left:3px solid var(--blue); margin-bottom:16px; padding:16px 20px;">
+          <div class="card-title" style="margin-bottom:6px;">Implicit — auto-discovery</div>
+          <div class="card-body">Claude reads every skill's <code style="color:var(--green)">description</code> field at session start and activates skills when context matches. Write descriptions as <em>"Use when..."</em> — trigger conditions, not feature lists.</div>
+        </div>
+        <div class="callout" style="padding:14px 20px;">
+          <p style="font-size:15px;">Skills are functions. CLAUDE.md is a global. Globals run everywhere — functions run when called. Put your workflows in functions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: Skill Frontmatter Deep Dive -->
+  <div class="slide" data-index="13">
+    <div class="section-badge s5">● Skills — Config</div>
+    <h2>SKILL.md frontmatter options</h2>
+    <p>The frontmatter controls when and how a skill runs. These options let you fine-tune behavior.</p>
+    <div class="card-grid cols-2" style="margin-top:20px;">
+      <div class="card" style="border-left:3px solid var(--pink);">
+        <div class="card-title"><code style="color:var(--green)">name</code> + <code style="color:var(--green)">description</code></div>
+        <div class="card-body"><strong>Name</strong> becomes the slash command: <kbd>/review</kbd>.<br><strong>Description</strong> is what Claude reads to decide auto-activation. Write it as "Use when..." — trigger conditions, not a feature list.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--blue);">
+        <div class="card-title"><code style="color:var(--green)">allowed-tools</code></div>
+        <div class="card-body">Restrict which tools the skill can use. <code style="color:var(--green)">Read, Grep, Glob</code> for read-only skills. Include <code style="color:var(--green)">Write, Edit, Bash</code> for skills that modify code.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--purple);">
+        <div class="card-title"><code style="color:var(--green)">model</code> + <code style="color:var(--green)">effort</code></div>
+        <div class="card-body">Override the model or effort level per skill. Use <code style="color:var(--green)">model: haiku</code> for cheap exploration skills, <code style="color:var(--green)">model: opus</code> for critical decisions.</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p><strong>$ARGUMENTS</strong> — use this placeholder in your skill body. When a user types <kbd>/review src/auth</kbd>, the text "src/auth" replaces $ARGUMENTS in the skill instructions.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Installing Skills & Plugins -->
+  <div class="slide" data-index="14">
+    <div class="section-badge s5">● Skills — Ecosystem</div>
+    <h2>Install existing skills, don't start from scratch</h2>
+    <p>The ecosystem already has production-grade skills. Install, learn from their structure, then write your own.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--pink)">Addy Osmani's Agent Skills</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.8;">
+<span class="dim"># Install as plugin</span>
+/plugin marketplace add addyosmani/agent-skills
+/plugin install agent-skills@addy-agent-skills
+
+<span class="dim"># 19 skills mapped to the lifecycle:</span>
+/spec    <span class="dim">→ Define requirements</span>
+/plan    <span class="dim">→ Task breakdown</span>
+/build   <span class="dim">→ Incremental implementation</span>
+/test    <span class="dim">→ TDD workflow</span>
+/review  <span class="dim">→ Code quality gates</span>
+/ship    <span class="dim">→ Git, CI/CD, docs</span></div>
+      </div>
+      <div>
+        <h3 style="color:var(--pink)">Write Your Own</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Start simple.</strong> One skill, one job. A <kbd>/generate-tests</kbd> skill that follows your project's test conventions.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Study existing skills.</strong> Read Addy's SKILL.md files — notice the "Common Rationalizations" and "Red Flags" sections that prevent Claude from cutting corners.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Include supporting files.</strong> Templates, checklists, examples alongside SKILL.md give Claude concrete patterns to follow.</span></li>
+        </ul>
+        <div class="divider"></div>
+        <p style="font-size:14px;"><strong style="color:var(--text)">More skills:</strong> <code style="color:var(--cyan)">github.com/ComposioHQ/awesome-claude-skills</code> — curated community collection.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: Real World — Matteo Collina -->
+  <div class="slide" data-index="15">
+    <div class="section-badge s4">● Real World · Example 1</div>
+    <h2>Matteo Collina's setup — Rules &amp; Skills in practice</h2>
+    <p>Matteo Collina (Node.js core, Fastify creator) uses Claude Code on production open-source work. His setup is a masterclass in scoping instructions correctly.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--purple)">Files to open</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>CLAUDE.md</strong> — the root project instructions. Notice what he puts here vs what he delegates to rules.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>.claude/rules/</strong> — domain-specific rules per directory. See how rules keep the root file lean.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>.claude/skills/</strong> — the workflow skills he's written. Read the <code style="color:var(--green)">description</code> fields carefully.</span></li>
+        </ul>
+        <div class="callout" style="margin-top:20px;">
+          <p>Pay attention to what is <strong>not</strong> in CLAUDE.md. The absence of certain things is deliberate — those are in rules or skills.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">What to explain</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>The 80-line discipline.</strong> Show the actual line count. Discuss what he chose to keep vs delegate.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Rules by directory.</strong> Walk through each rule file and its <code style="color:var(--green)">paths:</code> frontmatter — connect it to what you just taught.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Skill description fields.</strong> Read them aloud — show how precise "Use when..." descriptions enable auto-discovery.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>The structure as a system.</strong> Nothing is accidental — every file is in the right layer for a reason.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: Real World — Addy Osmani -->
+  <div class="slide" data-index="16">
+    <div class="section-badge s4">● Real World · Example 2</div>
+    <h2>Addy Osmani's setup — Skills &amp; Plugins at scale</h2>
+    <p>Addy Osmani (Google AI Engineering Director) published the agent-skills repo — 19 production-grade skills mapped to the full software lifecycle. This is the ecosystem in action.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--purple)">Files to open</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>A SKILL.md file</strong> — open <code style="color:var(--green)">/spec</code> or <code style="color:var(--green)">/plan</code>. Read it top to bottom. Notice the "Common Rationalizations" and "Red Flags" sections.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>The plugin manifest</strong> — shows how skills are packaged and distributed as a single installable unit.</span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>Supporting files</strong> — templates and examples sitting alongside SKILL.md. These are what give Claude concrete patterns.</span></li>
+        </ul>
+        <div class="callout" style="margin-top:20px;">
+          <p>Install it live: <code style="color:var(--green); font-size:13px;">/plugin marketplace add addyosmani/agent-skills</code></p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">What to explain</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>"Common Rationalizations."</strong> This section explicitly prevents Claude from cutting corners. Discuss: without this, what would Claude do?</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Skills as guardrails, not just prompts.</strong> Addy's skills don't just say what to do — they say what to refuse to do.</span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>The plugin model.</strong> One install, 19 skills — show how distribution works. Your team can publish internal plugins.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Lifecycle coverage.</strong> Each skill maps to one phase — /spec, /plan, /build, /test, /review, /ship. The whole framework, encoded in skills.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: The Complete Picture -->
+  <div class="slide" data-index="15">
+    <div class="section-badge s6">● Full Stack</div>
+    <h2>The complete picture</h2>
+    <p>Every layer you've learned, assembled into one system.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--cyan)">The instruction stack</h3>
+        <div class="code-block" style="font-size:13px; line-height:2.2; color:var(--text);">
+<span class="dim">~/.claude/settings.json</span>    <span class="flag">→ global defaults</span>
+<span class="dim">.claude/settings.json</span>      <span style="color:var(--blue);">→ team shared config</span>
+<span>CLAUDE.md</span>                   <span style="color:var(--accent);">→ always-loaded knowledge</span>
+<span class="dim">.claude/rules/*.md</span>         <span style="color:var(--purple);">→ conditional rules</span>
+<span class="dim">.claude/skills/*/SKILL.md</span>  <span style="color:var(--pink);">→ on-demand instructions</span>
+<span class="dim">session management</span>         <span style="color:var(--green);">/clear  /compact  /cost</span></div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">One sentence per layer</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong style="color:var(--green)">Settings</strong> control what Claude is <em>allowed</em> to do.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong style="color:var(--accent)">CLAUDE.md</strong> controls what Claude always <em>knows</em>.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong style="color:var(--purple)">Rules</strong> narrow what Claude knows to <em>specific directories</em>.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong style="color:var(--pink)">Skills</strong> control what Claude does when <em>triggered</em>.</span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong style="color:var(--cyan)">Session hygiene</strong> keeps it all <em>sharp</em> as context grows.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:24px;">
+      <p>These layers don't compete — they compose. A well-designed stack means Claude arrives at every task already knowing who you are, what you're building, and how you want to work.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Session 1 Recap -->
+  <div class="slide" data-index="17" style="justify-content:center; align-items:center; text-align:center; background: radial-gradient(ellipse 600px 400px at 50% 40%, rgba(96,165,250,0.06) 0%, transparent 70%), var(--bg);">
+    <div class="section-badge s2" style="margin:0 auto 20px;">● Recap</div>
+    <h1 style="font-size:48px;">What you now know</h1>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:32px; max-width:860px; text-align:left;">
+      <div class="card" style="padding:16px 20px; display:flex; align-items:center; gap:14px;">
+        <span style="color:var(--green); font-family:var(--mono); font-size:16px; flex-shrink:0;">✓</span>
+        <span style="font-size:15px;">The 5-phase agentic framework</span>
+      </div>
+      <div class="card" style="padding:16px 20px; display:flex; align-items:center; gap:14px;">
+        <span style="color:var(--green); font-family:var(--mono); font-size:16px; flex-shrink:0;">✓</span>
+        <span style="font-size:15px;">Claude Code — what it is, what it does</span>
+      </div>
+      <div class="card" style="padding:16px 20px; display:flex; align-items:center; gap:14px;">
+        <span style="color:var(--green); font-family:var(--mono); font-size:16px; flex-shrink:0;">✓</span>
+        <span style="font-size:15px;">Settings hierarchy — 5 levels</span>
+      </div>
+      <div class="card" style="padding:16px 20px; display:flex; align-items:center; gap:14px;">
+        <span style="color:var(--green); font-family:var(--mono); font-size:16px; flex-shrink:0;">✓</span>
+        <span style="font-size:15px;">CLAUDE.md mastery — hierarchy, rules, limits</span>
+      </div>
+      <div class="card" style="padding:16px 20px; display:flex; align-items:center; gap:14px;">
+        <span style="color:var(--green); font-family:var(--mono); font-size:16px; flex-shrink:0;">✓</span>
+        <span style="font-size:15px;">Session hygiene — clear, compact, thinking modes</span>
+      </div>
+      <div class="card" style="padding:16px 20px; display:flex; align-items:center; gap:14px;">
+        <span style="color:var(--green); font-family:var(--mono); font-size:16px; flex-shrink:0;">✓</span>
+        <span style="font-size:15px;">Skills — on-demand instructions, the ecosystem</span>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:28px; max-width:700px; text-align:left;">
+      <p>A well-configured Sonnet outperforms a poorly configured Opus.</p>
+    </div>
+    <p style="margin-top:24px; font-family:var(--mono); font-size:13px; color:var(--text-dim);">Continued in Session 2: MCP · Hooks · Agents · Worktrees</p>
+  </div>
+
+
+</div>
+
+<!-- Header -->
+<div class="slide-header">
+  <span class="header-title">Agentic Software Engineering</span>
+  <span class="header-author">Foyzul Karim — Senior Software Engineer, Domain (CoStar) Australia</span>
+</div>
+
+<!-- Footer -->
+<div class="slide-footer">
+  <a href="https://linkedin.com/in/foyzul" class="footer-link" target="_blank" rel="noopener">linkedin.com/in/foyzul</a>
+  <span class="key-hint">← → arrows</span>
+  <div class="footer-nav">
+    <button id="prev" aria-label="Previous slide">←</button>
+    <span id="counter">1 / 28</span>
+    <button id="next" aria-label="Next slide">→</button>
+  </div>
+</div>
+<div class="speaker-notes" id="notes"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+  let notesVisible = false;
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    document.getElementById('progress').style.width = `${((current + 1) / total) * 100}%`;
+    updateNotes();
+  }
+
+  function updateNotes() {
+    const notesEl = document.getElementById('notes');
+    const noteData = slides[current].querySelector('[data-notes]');
+    if (noteData && notesVisible) {
+      notesEl.innerHTML = noteData.getAttribute('data-notes');
+      notesEl.classList.add('visible');
+    } else {
+      notesEl.classList.remove('visible');
+    }
+  }
+
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+    if (e.key === 'n' || e.key === 'N') {
+      notesVisible = !notesVisible;
+      updateNotes();
+    }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) { diff > 0 ? goTo(current + 1) : goTo(current - 1); }
+  });
+
+  goTo(0);
+</script>
+
+</body>
+</html>

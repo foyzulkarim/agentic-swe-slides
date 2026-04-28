@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 2 — Agentic Software Engineering</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --text: #e8e6f0;
+    --text-dim: #8a88a0;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --accent-glow: rgba(249,115,22,0.15);
+    --blue: #60a5fa;
+    --green: #4ade80;
+    --purple: #c084fc;
+    --pink: #f472b6;
+    --cyan: #22d3ee;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    padding: 60px 80px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .slide.active { display: flex; }
+
+  .slide-header {
+    position: fixed;
+    top: 3px;
+    left: 0; right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    z-index: 90;
+  }
+  .header-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .header-author {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.7;
+  }
+
+  .slide-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    z-index: 90;
+  }
+  .footer-link {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .footer-link:hover { opacity: 1; color: var(--cyan); }
+  .footer-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .footer-nav button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .footer-nav button:hover { border-color: var(--accent); background: var(--surface2); }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--purple), var(--cyan));
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 100;
+  }
+
+  .slide h1 {
+    font-family: var(--serif);
+    font-size: 52px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+  .slide h2 {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .slide h3 {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+  }
+  .slide p {
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    max-width: 720px;
+  }
+  .slide p.large {
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .slide-title {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background:
+      radial-gradient(ellipse 600px 400px at 30% 80%, rgba(192,132,252,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 500px at 70% 20%, rgba(34,211,238,0.05) 0%, transparent 70%),
+      var(--bg);
+  }
+  .slide-title h1 { font-size: 64px; max-width: 900px; }
+  .slide-title .subtitle {
+    font-size: 20px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-weight: 300;
+  }
+  .slide-title .tagline {
+    margin-top: 40px;
+    padding: 14px 28px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--cyan);
+    background: rgba(34,211,238,0.1);
+  }
+
+  .card-grid {
+    display: grid;
+    gap: 16px;
+    margin-top: 20px;
+    flex: 1;
+  }
+  .card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: var(--cyan); }
+  .card .card-icon { font-size: 28px; margin-bottom: 14px; display: block; }
+  .card .card-title {
+    font-family: var(--sans);
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .card .card-body {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+
+  .section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section-badge.s1 { background: rgba(249,115,22,0.12); color: var(--accent); }
+  .section-badge.s2 { background: rgba(96,165,250,0.12); color: var(--blue); }
+  .section-badge.s3 { background: rgba(74,222,128,0.12); color: var(--green); }
+  .section-badge.s4 { background: rgba(192,132,252,0.12); color: var(--purple); }
+  .section-badge.s5 { background: rgba(244,114,182,0.12); color: var(--pink); }
+  .section-badge.s6 { background: rgba(34,211,238,0.12); color: var(--cyan); }
+
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--green);
+    margin-top: 16px;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  .code-block .dim { color: var(--text-dim); }
+  .code-block .flag { color: var(--blue); }
+  .code-block .str { color: var(--accent2); }
+
+  .concept-list {
+    list-style: none;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .concept-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .concept-list .bullet {
+    flex-shrink: 0;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 8px;
+  }
+  .concept-list strong { color: var(--text); font-weight: 600; }
+
+  .callout {
+    border-left: 3px solid var(--cyan);
+    padding: 20px 28px;
+    background: rgba(34,211,238,0.08);
+    border-radius: 0 12px 12px 0;
+    margin-top: 24px;
+  }
+  .callout p {
+    font-size: 17px;
+    color: var(--text);
+    font-style: italic;
+    max-width: 100%;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 20px;
+    flex: 1;
+  }
+
+  kbd {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 2px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  .key-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+
+  .speaker-notes {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.95);
+    border-top: 2px solid var(--cyan);
+    padding: 20px 40px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-dim);
+    z-index: 200;
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+  .speaker-notes.visible { display: block; }
+  .speaker-notes strong { color: var(--cyan); }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .flow-step {
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 120px;
+  }
+  .flow-arrow {
+    font-size: 20px;
+    color: var(--text-dim);
+    padding: 0 8px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 32px;
+  }
+  .stat { text-align: center; }
+  .stat .stat-value {
+    font-family: var(--serif);
+    font-size: 48px;
+    color: var(--cyan);
+    line-height: 1;
+  }
+  .stat .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 0: Title (EXISTING) -->
+  <div class="slide slide-title active" data-index="0">
+    <h3>Session 2</h3>
+    <h1>Advanced<br>Workflows</h1>
+    <p class="subtitle">MCP · Hooks · Agents · Worktrees</p>
+    <div class="tagline">Extending the foundation — MCP, hooks, agents, worktrees</div>
+  </div>
+
+  <!-- SLIDE 3: MCP Intro (EXISTING, was data-index="2") -->
+  <div class="slide" data-index="3">
+    <div class="section-badge s4">● MCP Servers</div>
+    <h2>MCP — Connect Claude to everything</h2>
+    <p>Model Context Protocol servers give Claude Code access to external tools and data sources: vector databases, browsers, APIs, anything with an MCP server. These are capabilities Claude <strong style="color:var(--text)">cannot</strong> get from Bash alone.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--purple)">How It Works</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Transport types:</strong> HTTP (recommended for remote), stdio (local processes). SSE is deprecated.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Three scopes:</strong> Local (<code style="color:var(--green)">~/.claude.json</code>, per-project), Project (<code style="color:var(--green)">.mcp.json</code>, committed), User (<code style="color:var(--green)">~/.claude.json</code>, all projects).</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Tool Search:</strong> Defers MCP tool loading until needed. Reduces context from ~72K tokens to ~8.7K with multiple servers. On by default.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">.mcp.json Example</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.8;">
+<span class="dim">// .mcp.json (committed to git)</span>
+{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"qdrant"</span>: {
+      <span class="flag">"command"</span>: <span class="str">"uvx"</span>,
+      <span class="flag">"args"</span>: [<span class="str">"mcp-server-qdrant"</span>],
+      <span class="flag">"env"</span>: {
+        <span class="str">"QDRANT_URL"</span>: <span class="str">"${QDRANT_URL}"</span>,
+        <span class="str">"COLLECTION_NAME"</span>: <span class="str">"project-docs"</span>
+      }
+    },
+    <span class="str">"context7"</span>: {
+      <span class="flag">"command"</span>: <span class="str">"npx"</span>,
+      <span class="flag">"args"</span>: [<span class="str">"-y"</span>,
+        <span class="str">"@upstash/context7-mcp@latest"</span>]
+    }
+  }
+}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Essential MCP Servers (EXISTING, was data-index="3") -->
+  <div class="slide" data-index="4">
+    <div class="section-badge s4">● MCP Servers</div>
+    <h2>MCP servers worth knowing</h2>
+    <p>You don't need many. Pick the ones that match your daily work.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card" style="border-left:3px solid var(--purple);">
+        <span class="card-icon">🧠</span>
+        <div class="card-title">Qdrant (Vector DB)</div>
+        <div class="card-body">Semantic search over your docs, ADRs, and domain knowledge. Claude searches by <em>meaning</em>, not keywords. Store with <code style="color:var(--green); font-size:12px;">qdrant-store</code>, retrieve with <code style="color:var(--green); font-size:12px;">qdrant-find</code>.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--blue);">
+        <span class="card-icon">🎭</span>
+        <div class="card-title">Playwright MCP</div>
+        <div class="card-body">Browser automation, screenshots, testing. Essential for frontend — gives Claude visual feedback it can't get from code alone.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--green);">
+        <span class="card-icon">🗄️</span>
+        <div class="card-title">PostgreSQL / Supabase</div>
+        <div class="card-body">Database queries and schema exploration. Claude validates migrations against live schema — not just guessing from Prisma files.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <span class="card-icon">📚</span>
+        <div class="card-title">Context7</div>
+        <div class="card-body">Up-to-date library docs. Claude gets current API signatures instead of hallucinating from stale training data.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--pink);">
+        <span class="card-icon">🎨</span>
+        <div class="card-title">Figma MCP</div>
+        <div class="card-body">Design-to-code workflows. Read Figma designs and translate to components — Claude sees the mockup.</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--cyan);">
+        <span class="card-icon">🔍</span>
+        <div class="card-title">Browse the Registry</div>
+        <div class="card-body"><code style="color:var(--cyan)">modelcontextprotocol.io</code> — find servers for your specific tools. GitHub, Stripe, Slack, and hundreds more.</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px; border-color:var(--purple); background:rgba(192,132,252,0.08);">
+      <p style="font-size:14px;"><strong style="color:var(--text)">Why not GitHub MCP?</strong> Claude Code already has <code>gh</code> CLI via Bash — MCP doesn't add much there. Focus on servers that give Claude <em>capabilities it can't get from the terminal</em>: semantic search, visual feedback, live documentation, design files.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: MCP Use Case — Vector DB as a Knowledge Layer -->
+  <div class="slide" data-index="5">
+    <div class="section-badge s4">● MCP — Use Case</div>
+    <h2>Real use case: vector DB as Claude's knowledge layer</h2>
+    <p>Your team has architecture decision records, API specs, domain glossaries, past postmortems. Claude can't read your Confluence wiki — but it can query a vector database where you've indexed that knowledge.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--purple)">The Setup</h3>
+        <div class="flow" style="flex-direction:column; align-items:stretch; gap:8px; margin-top:12px;">
+          <div class="flow-step" style="background:rgba(192,132,252,0.15); color:var(--purple); width:100%; text-align:left; display:flex; align-items:center; gap:14px;">
+            <span style="font-size:16px; width:24px;">1</span>
+            <div><strong>Index your knowledge</strong><br><span style="font-size:12px; font-weight:400; color:var(--text-dim);">Embed ADRs, specs, domain docs into Qdrant</span></div>
+          </div>
+          <div style="text-align:center; color:var(--text-dim); font-size:14px;">↓</div>
+          <div class="flow-step" style="background:rgba(34,211,238,0.15); color:var(--cyan); width:100%; text-align:left; display:flex; align-items:center; gap:14px;">
+            <span style="font-size:16px; width:24px;">2</span>
+            <div><strong>Connect via MCP</strong><br><span style="font-size:12px; font-weight:400; color:var(--text-dim);">Qdrant MCP server in <code>.mcp.json</code></span></div>
+          </div>
+          <div style="text-align:center; color:var(--text-dim); font-size:14px;">↓</div>
+          <div class="flow-step" style="background:rgba(74,222,128,0.15); color:var(--green); width:100%; text-align:left; display:flex; align-items:center; gap:14px;">
+            <span style="font-size:16px; width:24px;">3</span>
+            <div><strong>Claude queries before coding</strong><br><span style="font-size:12px; font-weight:400; color:var(--text-dim);">"Find relevant decisions about auth" → semantic search → informed code</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">What Goes In The Vector DB</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Architecture Decision Records</strong> — "Why did we choose PostgreSQL over MongoDB?" Claude finds the reasoning before suggesting a new data store.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>API specs and contracts</strong> — internal service documentation that's too large for CLAUDE.md but critical for cross-service work.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Domain knowledge</strong> — business rules, glossaries, regulatory requirements. "What are the GDPR rules for user data deletion?"</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Postmortems and incidents</strong> — "Has this pattern caused problems before?" Claude learns from your team's history.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>This is the MCP paradigm shift: Claude isn't limited to what's in the repo. It can search your team's entire knowledge base by <em>meaning</em> — finding relevant context that keyword search would miss. The vector DB becomes Claude's long-term memory for your organization.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: NEW — MCP Configuration Scopes -->
+  <div class="slide" data-index="6">
+    <div class="section-badge s4">● MCP — Config</div>
+    <h2>Where do you declare your MCP servers?</h2>
+    <p>Three scopes — same pattern as settings. Pick the right one based on who needs it.</p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:24px;">
+      <div class="card" style="border-left:4px solid var(--green); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--green); width:30px;">1</div>
+        <div><div class="card-title" style="margin:0;">Local scope — <code style="color:var(--green)">claude mcp add</code> (default)</div><div class="card-body" style="margin-top:4px;">Current project only, private to you. Stored in <code style="color:var(--green)">~/.claude.json</code> under your project's path. Use for personal dev servers, experiments.</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--blue); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--blue); width:30px;">2</div>
+        <div><div class="card-title" style="margin:0;">Project scope — <code style="color:var(--green)">.mcp.json</code> (committed to git)</div><div class="card-body" style="margin-top:4px;">Shared with your team. <code style="color:var(--green)">claude mcp add --scope project</code>. GitHub MCP, team databases, shared API servers. This is the most common.</div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--accent); padding:16px 24px; display:flex; align-items:center; gap:20px;">
+        <div style="font-family:var(--mono); font-size:28px; color:var(--accent); width:30px;">3</div>
+        <div><div class="card-title" style="margin:0;">User scope — <code style="color:var(--green)">claude mcp add --scope user</code></div><div class="card-body" style="margin-top:4px;">Available in all your projects. Stored in <code style="color:var(--green)">~/.claude.json</code> (cross-project). Personal GitHub, utility servers you use everywhere.</div></div>
+      </div>
+    </div>
+    <div class="code-block" style="font-size:13px; line-height:1.8; margin-top:20px;">
+<span class="dim">// .mcp.json — project scope (committed, shared with team)</span>
+{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"qdrant"</span>: {
+      <span class="flag">"command"</span>: <span class="str">"uvx"</span>,
+      <span class="flag">"args"</span>: [<span class="str">"mcp-server-qdrant"</span>],
+      <span class="flag">"env"</span>: { <span class="str">"QDRANT_URL"</span>: <span class="str">"${QDRANT_URL}"</span>, <span class="str">"COLLECTION_NAME"</span>: <span class="str">"project-docs"</span> }
+      <span class="dim">// stdio — semantic search over your team's knowledge base</span>
+    },
+    <span class="str">"context7"</span>: {
+      <span class="flag">"command"</span>: <span class="str">"npx"</span>,
+      <span class="flag">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@upstash/context7-mcp@latest"</span>]
+      <span class="dim">// stdio — fetches current library docs on demand</span>
+    }
+  }
+}</div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Project scope (<code>.mcp.json</code>) is the team default — Qdrant, Context7, Playwright all go here. Local and User scope both live in <code>~/.claude.json</code> — local is per-project, user is cross-project. Note: MCP local scope is <strong>not</strong> <code>.claude/settings.local.json</code> — that's for general settings only.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: NEW — MCP Troubleshooting -->
+  <div class="slide" data-index="7">
+    <div class="section-badge s4">● MCP — Troubleshooting</div>
+    <h2>When MCP servers don't connect</h2>
+    <p>MCP issues are the most common source of frustration. Here's your debugging playbook.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--purple)">Common Issues</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Server not found</strong> → check <code style="color:var(--green)">command</code> path, run <code style="color:var(--cyan)">which npx</code> to verify</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Connection refused</strong> → server process not running, check port</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Tools not appearing</strong> → run <code style="color:var(--cyan)">/mcp</code> to see status, check <code style="color:var(--green)">allowedTools</code> in settings</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Context explosion</strong> → Tool Search is on by default, verify with <code style="color:var(--cyan)">/context</code></span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Auth failures</strong> → check environment variables, <code style="color:var(--cyan)">echo $GITHUB_TOKEN</code></span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">Debugging Commands</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.9;">
+<span class="dim"># Check MCP server status</span>
+/mcp
+
+<span class="dim"># See what's loaded in context</span>
+/context
+
+<span class="dim"># Test a server manually</span>
+npx @modelcontextprotocol/server-postgres $DB_URL
+
+<span class="dim"># Restart Claude Code after config changes</span>
+<span class="dim"># (MCP config loads on startup)</span></div>
+      </div>
+    </div>
+    <div class="callout" style="border-color:var(--cyan); background:rgba(34,211,238,0.08);">
+      <p>The #1 mistake: editing <code>.mcp.json</code> and expecting instant changes. MCP servers load on startup. <strong>Restart your Claude Code session after config changes.</strong></p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Hooks — Concept (SPLIT from Hooks Intro) -->
+  <div class="slide" data-index="8">
+    <div class="section-badge s5">● Hooks</div>
+    <h2>Hooks — automate your guardrails</h2>
+    <p>Hooks are shell commands that fire at lifecycle events. They format your code, block dangerous commands, validate quality — automatically, every time. Claude doesn't control them — they run whether Claude wants them to or not.</p>
+    <div style="margin-top:24px;">
+      <h3 style="color:var(--pink)">Four Hook Types</h3>
+      <div class="card-grid cols-2" style="margin-top:16px;">
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <div class="card-title">command</div>
+          <div class="card-body">Runs a shell command. Most common type. Fast, predictable, easy to debug.</div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--blue);">
+          <div class="card-title">prompt</div>
+          <div class="card-body">LLM-evaluated (uses Haiku by default). Smart but slower. Good for nuanced checks.</div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--green);">
+          <div class="card-title">agent</div>
+          <div class="card-body">Full agent execution. For complex, multi-step validation that needs reasoning.</div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--purple);">
+          <div class="card-title">http</div>
+          <div class="card-body">POST to a URL. For external integrations — Slack notifications, webhooks, logging.</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:24px;">
+      <p>Hooks are reflexes — they fire every time, without thinking. Claude doesn't choose to run them. They fire at lifecycle events automatically, enforcing your standards even when no one is watching.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Hooks — Events & Examples (SPLIT from Hooks Intro) -->
+  <div class="slide" data-index="9">
+    <div class="section-badge s5">● Hooks — Events &amp; Examples</div>
+    <h2>28 Events — the ones that matter</h2>
+    <p>Hooks can fire on 28 different lifecycle events. You'll use about 5 of them regularly. Here are the key ones and what they look like in practice.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--pink)">Key Events</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>PreToolUse</strong> — fires before an action. <em>The only hook that can block.</em></span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>PostToolUse</strong> — fires after an action. Auto-format, auto-lint.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>Stop</strong> — fires when Claude finishes. Validate completion.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>SessionStart</strong> — fires on startup. Load env vars, set up tooling.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>UserPromptSubmit</strong> — fires before Claude processes your prompt. Pre-validation.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>+ 23 more</strong> — SubagentStop, FileChanged, Notification, ConfigChange, etc.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--pink)">Practical Examples</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim">// .claude/settings.json</span>
+{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PostToolUse"</span>: [{
+      <span class="flag">"matcher"</span>: <span class="str">"Write|Edit|MultiEdit"</span>,
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"npx prettier --write $FILE"</span>
+    }],
+    <span class="str">"PreToolUse"</span>: [{
+      <span class="flag">"matcher"</span>: <span class="str">"Bash"</span>,
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"echo $COMMAND | grep -qE 'rm -rf|DROP' && exit 2 || exit 0"</span>
+    }]
+  }
+}</div>
+        <div class="callout" style="margin-top:16px; border-color:var(--pink); background:rgba(244,114,182,0.08);">
+          <p style="font-size:14px;">PreToolUse hooks with exit code 2 <strong>block the action</strong> — even in bypassPermissions mode. This is your ultimate safety net.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: NEW — PreToolUse Patterns -->
+  <div class="slide" data-index="10">
+    <div class="section-badge s5">● Hooks — Patterns</div>
+    <h2>PreToolUse hooks — your ultimate safety net</h2>
+    <p>PreToolUse is the only hook that can block actions. Exit code 2 = blocked. These patterns prevent disaster before it happens.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--pink)">Block dangerous commands</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim">// .claude/settings.json</span>
+{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PreToolUse"</span>: [{
+      <span class="flag">"matcher"</span>: <span class="str">"Bash"</span>,
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"echo $COMMAND | grep -qiE 'rm -rf|DROP TABLE|DELETE FROM[^;]*;|force push' && exit 2 || exit 0"</span>
+    }]
+  }
+}</div>
+        <p style="font-size:13px; margin-top:12px; color:var(--text-dim); line-height:1.6;"><strong style="color:var(--text)">Exit code 2</strong> blocks the action AND shows a message to Claude. <strong style="color:var(--text)">Exit code 0</strong> allows it. This runs even in bypassPermissions mode.</p>
+      </div>
+      <div>
+        <h3 style="color:var(--pink)">Protect critical files</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim">// .claude/settings.json</span>
+{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PreToolUse"</span>: [{
+      <span class="flag">"matcher"</span>: <span class="str">"Write|Edit|MultiEdit"</span>,
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"echo $FILE | grep -qE 'production|\\.env\\.prod|schema\\.prisma' && exit 2 || exit 0"</span>
+    }]
+  }
+}</div>
+        <h3 style="color:var(--pink); margin-top:16px;">What to block</h3>
+        <ul class="concept-list" style="margin-top:8px;">
+          <li><span class="bullet" style="background:var(--accent)"></span><span>Destructive SQL (DROP, DELETE without WHERE)</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span>Production config files</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span>Force push to main/master</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span>Direct commits to protected branches</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="border-color:var(--pink); background:rgba(244,114,182,0.08);">
+      <p>PreToolUse hooks are your last line of defense. Claude can bypass permissions — it <strong>cannot</strong> bypass a PreToolUse hook that returns exit code 2. This is by design.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: NEW — Credential Guard Hook -->
+  <div class="slide" data-index="11">
+    <div class="section-badge s5">● Hooks — Real Example</div>
+    <h2>Real-world hook: block credentials from commits</h2>
+    <p>A PreToolUse hook that scans staged files for secrets before <code>git commit</code> runs. If it finds anything, exit code 2 blocks the commit and tells Claude why.</p>
+
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--pink)">The hook config</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim">// .claude/settings.json</span>
+{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PreToolUse"</span>: [{
+      <span class="flag">"matcher"</span>: <span class="str">"Bash"</span>,
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"bash .claude/hooks/credential-check.sh"</span>
+    }]
+  }
+}</div>
+        <h3 style="color:var(--pink); margin-top:16px;">What it catches</h3>
+        <ul class="concept-list" style="margin-top:8px;">
+          <li><span class="bullet" style="background:var(--accent)"></span><span>AWS keys (<code>AKIA...</code>)</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span>Private keys (<code>BEGIN RSA PRIVATE KEY</code>)</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span>API tokens &amp; passwords in code</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><code>.env</code> files with real values</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color:var(--pink)">The script</h3>
+        <div class="code-block" style="font-size:11px; line-height:1.6;">
+<span class="dim">#!/bin/bash</span>
+<span class="dim"># .claude/hooks/credential-check.sh</span>
+
+<span class="dim"># Only run when the command is git commit</span>
+echo <span class="str">"$TOOL_INPUT"</span> | grep -q <span class="str">"git commit"</span> \
+  || exit 0
+
+<span class="dim"># Scan staged files for secrets</span>
+SECRETS=$(git diff --cached --diff-filter=ACM \
+  | grep -iEn \
+    <span class="str">'AKIA[0-9A-Z]{16}'</span>           <span class="dim"># AWS access key</span> \
+    <span class="str">'|BEGIN (RSA|EC|DSA) PRIVATE'</span>  <span class="dim"># private key</span> \
+    <span class="str">'|password\s*[:=]\s*["\x27].+'</span> <span class="dim"># password assignment</span> \
+    <span class="str">'|secret\s*[:=]\s*["\x27].+'</span>  <span class="dim"># secret assignment</span> \
+    <span class="str">'|token\s*[:=]\s*["\x27].+'</span>   <span class="dim"># token assignment</span>
+)
+
+if [ -n <span class="str">"$SECRETS"</span> ]; then
+  echo <span class="str">"<span style="color:var(--accent)">BLOCKED:</span> Credentials found in staged files:"</span>
+  echo <span class="str">"$SECRETS"</span>
+  echo <span class="str">"Remove secrets and use env vars instead."</span>
+  exit 2   <span class="dim"># ← blocks the commit</span>
+fi
+
+exit 0     <span class="dim"># ← allows the commit</span></div>
+      </div>
+    </div>
+
+    <div class="flow" style="margin-top:20px;">
+      <div class="flow-step" style="background:rgba(192,132,252,0.15); color:var(--purple);">Claude runs<br><code>git commit</code></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(244,114,182,0.15); color:var(--pink);">PreToolUse<br>hook fires</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(249,115,22,0.15); color:var(--accent);">Script scans<br>staged diff</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:rgba(248,113,113,0.15); color:#f87171;">Secrets found?<br><strong>exit 2 = BLOCKED</strong></div>
+    </div>
+
+    <div class="callout" style="border-color:var(--accent); background:rgba(249,115,22,0.08); margin-top:16px;">
+      <p>This is what hooks are for — <strong>automatic enforcement with zero user action</strong>. Claude can't skip this check. It fires every time, even with <code>dangerouslySkipPermissions</code>. Your credentials never make it into a commit.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: NEW — Hooks + Skills Combo -->
+  <div class="slide" data-index="12">
+    <div class="section-badge s5">● Hooks — Workflow</div>
+    <h2>Hooks + Skills — two independent layers</h2>
+    <p>They don't call each other. They cover different gaps. Hooks are automatic reflexes. Skills are on-demand expertise you invoke yourself.</p>
+
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--cyan)">Hooks — automatic, no user action</h3>
+        <p style="font-size:13px; color:var(--text-dim); margin-bottom:10px;">Run shell commands when Claude uses a tool. You never invoke them — they just fire.</p>
+        <div class="flow" style="margin-bottom:12px;">
+          <div class="flow-step" style="background:rgba(34,211,238,0.15); color:var(--cyan);">Claude writes<br>a file</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="background:rgba(244,114,182,0.15); color:var(--pink);">PostToolUse<br>hook fires</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="background:rgba(74,222,128,0.15); color:var(--green);">prettier<br>formats it</div>
+        </div>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim">// .claude/settings.json</span>
+{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PostToolUse"</span>: [{
+      <span class="flag">"matcher"</span>: <span class="str">"Write|Edit"</span>,
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"npx prettier --write $FILE"</span>
+    }],
+    <span class="str">"Stop"</span>: [{
+      <span class="flag">"type"</span>: <span class="str">"command"</span>,
+      <span class="flag">"command"</span>: <span class="str">"npm test"</span>
+    }]
+  }
+}</div>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">Skills — on-demand, user invokes</h3>
+        <p style="font-size:13px; color:var(--text-dim); margin-bottom:10px;">Markdown instructions loaded into Claude's context when <strong>you</strong> type a slash command.</p>
+        <div class="flow" style="margin-bottom:12px;">
+          <div class="flow-step" style="background:rgba(192,132,252,0.15); color:var(--purple);">You type<br><code>/review</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="background:rgba(244,114,182,0.15); color:var(--pink);">SKILL.md loads<br>into context</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="background:rgba(74,222,128,0.15); color:var(--green);">Claude follows<br>the checklist</div>
+        </div>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim"># .claude/skills/review/SKILL.md</span>
+---
+<span class="flag">name</span>: <span class="str">review</span>
+<span class="flag">description</span>: <span class="str">Run code review checklist</span>
+---
+
+## Steps
+1. Read changed files via <span class="str">`git diff`</span>
+2. Check for security issues
+   (SQL injection, XSS, hardcoded secrets)
+3. Verify test coverage for new functions
+4. Ensure error handling follows project
+   conventions
+5. Output summary with pass/fail per check</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:16px;">
+      <ul class="concept-list" style="margin:0;">
+        <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>Hooks</strong> = shell commands that fire automatically. Claude doesn't even know they ran.</span></li>
+        <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Skills</strong> = markdown instructions Claude reads and follows. You trigger them with <code>/skillname</code>.</span></li>
+        <li><span class="bullet" style="background:var(--green)"></span><span><strong>They don't call each other.</strong> But in a mature setup, both are active — hooks enforce standards silently while skills guide complex workflows on demand.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SLIDE: MCP vs Skills vs Hooks — Now You Know All Three -->
+  <div class="slide" data-index="13">
+    <div class="section-badge s4">● Extension Points</div>
+    <h2>MCP, Skills, or Hooks — which extension point?</h2>
+    <p>Now that you know all three, here's the decision framework. Each solves a different problem. Choosing wrong means fighting the tool.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card" style="border-top:3px solid var(--purple);">
+        <span class="card-icon">🔌</span>
+        <div class="card-title">MCP Servers</div>
+        <div class="card-body">Give Claude new capabilities it doesn't have. Access to databases, browsers, APIs, external tools. <strong style="color:var(--text)">Think: new senses.</strong><br><br><strong style="color:var(--purple)">When:</strong> You need Claude to interact with an external system.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--pink);">
+        <span class="card-icon">📜</span>
+        <div class="card-title">Skills</div>
+        <div class="card-body">Give Claude specialized instructions for specific workflows. Code review checklists, test patterns, deployment steps. <strong style="color:var(--text)">Think: new knowledge on demand.</strong><br><br><strong style="color:var(--pink)">When:</strong> You need Claude to follow a specific process consistently.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--cyan);">
+        <span class="card-icon">🪝</span>
+        <div class="card-title">Hooks</div>
+        <div class="card-body">Automate guardrails that fire at lifecycle events. Auto-format, block dangerous commands, validate quality. <strong style="color:var(--text)">Think: new reflexes.</strong><br><br><strong style="color:var(--cyan)">When:</strong> You need something to happen automatically, every time, without thinking.</div>
+      </div>
+    </div>
+    <div style="margin-top:24px; display:flex; flex-direction:column; gap:2px;">
+      <div style="display:grid; grid-template-columns:100px 1fr 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:12px;">
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:1px;"></div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:1px; background:var(--surface); border-radius:8px 0 0 0;">Triggers</div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:1px; background:var(--surface);">Loads</div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:1px; background:var(--surface);">Best for</div>
+        <div style="padding:10px 14px; color:var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:1px; background:var(--surface); border-radius:0 8px 0 0;">Example</div>
+      </div>
+      <div style="display:grid; grid-template-columns:100px 1fr 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:12px;">
+        <div style="padding:10px 14px; background:rgba(192,132,252,0.1); border-radius:8px 0 0 8px; color:var(--purple); font-weight:600;">MCP</div>
+        <div style="padding:10px 14px; background:var(--surface); color:var(--text-dim);">On tool use</div>
+        <div style="padding:10px 14px; background:var(--surface); color:var(--text-dim);">Always (with Tool Search)</div>
+        <div style="padding:10px 14px; background:var(--surface); color:var(--text-dim);">External systems</div>
+        <div style="padding:10px 14px; background:var(--surface); border-radius:0 8px 8px 0; color:var(--green);">Qdrant, Playwright, Context7</div>
+      </div>
+      <div style="display:grid; grid-template-columns:100px 1fr 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:12px;">
+        <div style="padding:10px 14px; background:rgba(244,114,182,0.1); border-radius:8px 0 0 8px; color:var(--pink); font-weight:600;">Skills</div>
+        <div style="padding:10px 14px; background:var(--surface2); color:var(--text-dim);">Slash command or auto</div>
+        <div style="padding:10px 14px; background:var(--surface2); color:var(--text-dim);">On demand</div>
+        <div style="padding:10px 14px; background:var(--surface2); color:var(--text-dim);">Workflows &amp; processes</div>
+        <div style="padding:10px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--green);">/review, /spec, /plan</div>
+      </div>
+      <div style="display:grid; grid-template-columns:100px 1fr 1fr 1fr 1fr; gap:1px; font-family:var(--mono); font-size:12px;">
+        <div style="padding:10px 14px; background:rgba(34,211,238,0.1); border-radius:8px 0 0 8px; color:var(--cyan); font-weight:600;">Hooks</div>
+        <div style="padding:10px 14px; background:var(--surface2); color:var(--text-dim);">Lifecycle events</div>
+        <div style="padding:10px 14px; background:var(--surface2); color:var(--text-dim);">Always</div>
+        <div style="padding:10px 14px; background:var(--surface2); color:var(--text-dim);">Automatic guardrails</div>
+        <div style="padding:10px 14px; background:var(--surface2); border-radius:0 8px 8px 0; color:var(--green);">Auto-format, block rm -rf</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Most projects use all three. MCP connects Claude to your world. Skills teach Claude your workflows. Hooks enforce your standards automatically. They compose, they don't compete.</p>
+    </div>
+    <div style="margin-top:16px; background:var(--surface); border-radius:12px; padding:16px 20px;">
+      <h3 style="color:var(--accent); font-size:14px; margin-bottom:12px;">Quick Check — type your answer in chat</h3>
+      <div style="display:flex; gap:16px; font-size:13px; font-family:var(--mono);">
+        <div style="flex:1;"><span style="color:var(--text-dim);">Auto-format code after every edit?</span><br><strong style="color:var(--cyan);">→ Hook</strong></div>
+        <div style="flex:1;"><span style="color:var(--text-dim);">Connect to your team's vector database?</span><br><strong style="color:var(--purple);">→ MCP</strong></div>
+        <div style="flex:1;"><span style="color:var(--text-dim);">Run your code review checklist?</span><br><strong style="color:var(--pink);">→ Skill</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: Permission Modes — How Much Autonomy? -->
+  <div class="slide" data-index="14">
+    <div class="section-badge s5">● Permission Modes</div>
+    <h2>How much autonomy does Claude get?</h2>
+    <p>Permission modes control how much Claude can do without asking. Combined with hooks, this gives you a sliding scale from fully supervised to fully autonomous — with guardrails at every level.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <span class="card-icon">🛡️</span>
+        <div class="card-title">Default Mode</div>
+        <div class="card-body">Claude asks permission before writing files, running commands, or taking actions. <strong style="color:var(--text)">Best for:</strong> learning, unfamiliar codebases, critical projects.<br><br><code style="color:var(--cyan); font-size:12px;">Shift+Tab to cycle modes</code></div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Plan Mode</div>
+        <div class="card-body">Read-only. Claude can explore and analyze but <strong style="color:var(--text)">cannot modify anything</strong>. No writes, no commands, no side effects.<br><br><strong style="color:var(--text)">Best for:</strong> architecture exploration, understanding a codebase before coding.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Auto / Bypass Mode</div>
+        <div class="card-body">Claude acts freely — no permission prompts. <strong style="color:var(--text)">PreToolUse hooks still fire.</strong> Your hooks are the safety net.<br><br><code style="color:var(--cyan); font-size:12px;">claude --dangerouslySkipPermissions</code></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>This is why hooks matter so much: in bypass mode, Claude skips permission dialogs — but it <strong>cannot skip your PreToolUse hooks</strong>. A well-hooked project is safe even at maximum autonomy. Start in default mode, graduate to auto mode only after your hooks are solid.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: What Is an Agent? — The Core Concept -->
+  <div class="slide" data-index="15">
+    <div class="section-badge s6">● Agents</div>
+    <h2>What is an agent?</h2>
+    <p>An agent is not just a prompt — it's an <strong>intelligent orchestrator</strong> that decides what to do next based on the situation. It invokes skills sequentially (one by one) and spawns subagents in parallel (many at once). This is the fundamental building block of agentic software engineering.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--cyan)">Agent = Intelligent Skill</h3>
+        <div style="margin-top:16px;">
+          <div class="card" style="border:2px solid var(--cyan); padding:16px 20px; text-align:center; margin-bottom:12px;">
+            <div style="font-family:var(--mono); font-size:14px; color:var(--cyan); font-weight:600;">Agent</div>
+            <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">reads context, makes decisions, orchestrates work</div>
+          </div>
+          <div style="display:flex; gap:24px; justify-content:center; margin:12px 0;">
+            <div style="text-align:center;">
+              <div style="color:var(--text-dim); font-size:12px; margin-bottom:4px;">sequential</div>
+              <div style="color:var(--green); font-size:18px;">↓ → ↓ → ↓</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="color:var(--text-dim); font-size:12px; margin-bottom:4px;">parallel</div>
+              <div style="color:var(--purple); font-size:18px;">↓ ↓ ↓</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <div class="card" style="flex:1; border-left:3px solid var(--green); padding:10px 14px;">
+              <div style="font-family:var(--mono); font-size:11px; color:var(--green); font-weight:600;">Skill 1</div>
+              <div style="font-size:10px; color:var(--text-dim);">explore</div>
+            </div>
+            <div class="card" style="flex:1; border-left:3px solid var(--green); padding:10px 14px;">
+              <div style="font-family:var(--mono); font-size:11px; color:var(--green); font-weight:600;">Skill 2</div>
+              <div style="font-size:10px; color:var(--text-dim);">plan</div>
+            </div>
+            <div class="card" style="flex:1; border-left:3px solid var(--green); padding:10px 14px;">
+              <div style="font-family:var(--mono); font-size:11px; color:var(--green); font-weight:600;">Skill 3</div>
+              <div style="font-size:10px; color:var(--text-dim);">implement</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <div class="card" style="flex:1; border-left:3px solid var(--purple); padding:10px 14px;">
+              <div style="font-family:var(--mono); font-size:11px; color:var(--purple); font-weight:600;">Subagent A</div>
+              <div style="font-size:10px; color:var(--text-dim);">test auth</div>
+            </div>
+            <div class="card" style="flex:1; border-left:3px solid var(--purple); padding:10px 14px;">
+              <div style="font-family:var(--mono); font-size:11px; color:var(--purple); font-weight:600;">Subagent B</div>
+              <div style="font-size:10px; color:var(--text-dim);">test payments</div>
+            </div>
+            <div class="card" style="flex:1; border-left:3px solid var(--purple); padding:10px 14px;">
+              <div style="font-family:var(--mono); font-size:11px; color:var(--purple); font-weight:600;">Subagent C</div>
+              <div style="font-size:10px; color:var(--text-dim);">test UI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">What makes it "agentic"?</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>Autonomous decision-making</strong> — it reads context and decides what skill to invoke next, not just following a script</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Sequential skill invocation</strong> — it chains skills one by one: explore the codebase, then plan the change, then implement it, then test it</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Parallel subagent spawning</strong> — when tasks are independent, it launches multiple subagents simultaneously (e.g., test three modules at once)</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Feedback loops</strong> — when a test fails, it doesn't stop. It reads the error, adjusts, and retries. It reacts to outcomes, not just instructions</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Tool access</strong> — it can read files, run commands, search code, edit code — all the primitives needed to do real work</span></li>
+        </ul>
+        <div class="divider"></div>
+        <p style="font-size:14px; color:var(--text-dim);"><strong style="color:var(--text);">The simplest way to think about it:</strong> a skill is a recipe. An agent is a chef — it knows many recipes, picks the right one, and adapts when ingredients are missing.</p>
+      </div>
+    </div>
+    <div class="callout" style="border-color:var(--accent); background:rgba(249,115,22,0.08);">
+      <p>Claude Code itself is an agent. When you ask it to "fix this bug," it autonomously explores the code, forms a hypothesis, writes a fix, runs tests, and iterates — invoking skills and spawning subagents as needed. Everything in this section is about understanding and extending that capability.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Why Subagents? — The Problem They Solve -->
+  <div class="slide" data-index="16">
+    <div class="section-badge s6">● Agents — Why</div>
+    <h2>Why do you need subagents?</h2>
+    <p>Your main Claude session has one context window. Every file it reads, every search it runs, every conversation turn — it all accumulates. Subagents solve three problems that single-session workflows hit.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <span class="card-icon">🧠</span>
+        <div class="card-title">Context Pollution</div>
+        <div class="card-body">You ask Claude to explore 50 files to understand the auth system. Now your context is full of auth code — and you need to work on the payment module. Every subsequent answer is biased by what Claude just read.<br><br><strong style="color:var(--text)">Subagent fix:</strong> explorer runs in its own context, reports back a summary. Your main session stays clean.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <span class="card-icon">💰</span>
+        <div class="card-title">Cost Explosion</div>
+        <div class="card-body">A long session with heavy exploration hits 100K+ tokens. Every new message re-processes that entire context. You're paying for auth exploration tokens on every payment question.<br><br><strong style="color:var(--text)">Subagent fix:</strong> heavy exploration stays in a cheap Haiku agent. Your main Opus/Sonnet session stays lean.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <span class="card-icon">🔒</span>
+        <div class="card-title">Safety Boundaries</div>
+        <div class="card-body">You want Claude to review code but not modify it. You want it to explore but not run commands. In a single session, you can't restrict tools per task.<br><br><strong style="color:var(--text)">Subagent fix:</strong> each agent gets only the tools it needs. A reviewer gets Read/Grep. A builder gets Edit/Bash. Least privilege by design.</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Subagents are not about doing more — they're about doing the same work without polluting your main session's context, budget, or safety boundaries. Think of it as <strong>separation of concerns for your AI workflow</strong>.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Subagents — How They Work -->
+  <div class="slide" data-index="17">
+    <div class="section-badge s6">● Agents</div>
+    <h2>Subagents — delegate with precision</h2>
+    <p>Now that you know why — here's how. Subagents get their own context window, their own tool restrictions, and can use different models.</p>
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--cyan)">Agent Definition</h3>
+        <div class="code-block" style="font-size:13px; line-height:1.8;">
+<span class="dim"># .claude/agents/explorer.md</span>
+<span class="flag">---</span>
+<span class="flag">name:</span> <span class="str">explorer</span>
+<span class="flag">description:</span> <span class="str">Investigate codebase
+  structure and patterns</span>
+<span class="flag">tools:</span> <span class="str">Read, Grep, Glob</span>
+<span class="flag">model:</span> <span class="str">haiku</span>
+<span class="flag">---</span>
+
+Explore the codebase and report:
+- Directory structure
+- Key patterns used
+- Dependency relationships
+- Potential issues</div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">Model Routing Strategy</h3>
+        <div class="card-grid" style="grid-template-columns:1fr; gap:12px; margin-top:16px;">
+          <div class="card" style="padding:18px; border-left:3px solid var(--green);">
+            <div class="card-title" style="font-size:15px;"><code style="color:var(--green)">model: haiku</code> — Exploration</div>
+            <div class="card-body">Read-only agents that scan, search, investigate. Cheap and fast. No code changes.</div>
+          </div>
+          <div class="card" style="padding:18px; border-left:3px solid var(--blue);">
+            <div class="card-title" style="font-size:15px;"><code style="color:var(--blue)">model: sonnet</code> — Implementation</div>
+            <div class="card-body">Writing code, tests, documentation. The workhorse. Most agents should use this.</div>
+          </div>
+          <div class="card" style="padding:18px; border-left:3px solid var(--purple);">
+            <div class="card-title" style="font-size:15px;"><code style="color:var(--purple)">model: opus</code> — Architecture</div>
+            <div class="card-body">Critical design decisions, complex refactors. Use sparingly — expensive but thorough.</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <p style="font-size:14px;"><strong style="color:var(--text)">Built-in agents:</strong> <code style="color:var(--cyan)">Explore</code> and <code style="color:var(--cyan)">Plan</code> are available without configuration. Try them with <kbd>/agents</kbd>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: NEW — Subagent Architecture -->
+  <div class="slide" data-index="18">
+    <div class="section-badge s6">● Agents — Architecture</div>
+    <h2>Under the hood — how subagents actually work</h2>
+    <p>Each subagent gets its own context window, its own tool restrictions, and its own model. Understanding the architecture helps you design better agents.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--cyan)">The Architecture</h3>
+        <div style="margin-top:16px;">
+          <div class="card" style="border:2px solid var(--cyan); padding:16px 20px; text-align:center; margin-bottom:12px;">
+            <div style="font-family:var(--mono); font-size:13px; color:var(--cyan); font-weight:600;">Main Session</div>
+            <div style="font-size:11px; color:var(--text-dim); margin-top:4px;">your conversation, full context</div>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:center; margin-bottom:8px;">
+            <div style="text-align:center; color:var(--text-dim); font-size:14px;">↓ spawns ↓</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="card" style="border-left:3px solid var(--green); padding:12px 16px; display:flex; align-items:center; gap:12px;">
+              <span style="font-size:16px;">🔍</span>
+              <div>
+                <div style="font-family:var(--mono); font-size:12px; color:var(--green); font-weight:600;">Explorer Agent</div>
+                <div style="font-size:11px; color:var(--text-dim);">model: haiku · tools: Read, Grep, Glob</div>
+              </div>
+              <div style="margin-left:auto; font-size:11px; color:var(--text-dim); font-family:var(--mono);">→ returns results</div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--pink); padding:12px 16px; display:flex; align-items:center; gap:12px;">
+              <span style="font-size:16px;">📝</span>
+              <div>
+                <div style="font-family:var(--mono); font-size:12px; color:var(--pink); font-weight:600;">Reviewer Agent</div>
+                <div style="font-size:11px; color:var(--text-dim);">model: sonnet · tools: Read, Grep, Glob</div>
+              </div>
+              <div style="margin-left:auto; font-size:11px; color:var(--text-dim); font-family:var(--mono);">→ returns results</div>
+            </div>
+            <div class="card" style="border-left:3px solid var(--purple); padding:12px 16px; display:flex; align-items:center; gap:12px;">
+              <span style="font-size:16px;">🏗️</span>
+              <div>
+                <div style="font-family:var(--mono); font-size:12px; color:var(--purple); font-weight:600;">Architect Agent</div>
+                <div style="font-size:11px; color:var(--text-dim);">model: opus · tools: Read, Grep, Glob</div>
+              </div>
+              <div style="margin-left:auto; font-size:11px; color:var(--text-dim); font-family:var(--mono);">→ returns results</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">Key Architectural Facts</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>Isolated context</strong> — each agent starts fresh. Your main conversation doesn't carry over. This is why agents are perfect for heavy exploration.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Tool restrictions</strong> — agents only get the tools you list. An explorer with Read/Grep/Glob can't modify files. Safety by design.</span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Result return</strong> — agents send their findings back to your main session as a summary. The full exploration stays in the agent's context, not yours.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Cost isolation</strong> — each agent's token usage is tracked separately. Run <code style="color:var(--cyan)">/cost</code> to see the breakdown.</span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Session continuity</strong> — agents get a session_id. You can continue a conversation with the same agent, preserving its context.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="border-color:var(--cyan); background:rgba(34,211,238,0.08);">
+      <p>The key insight: subagents keep your main context clean. Heavy exploration in a subagent = zero context pollution in your main session. This is why <code>context: fork</code> in skills does the same thing — it runs the skill as a subagent.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: NEW — Agent Routing Strategy -->
+  <div class="slide" data-index="19">
+    <div class="section-badge s6">● Agents — Routing</div>
+    <h2>Matching models to tasks — the routing strategy</h2>
+    <p>Not every task needs Opus. Not every task can use Haiku. Here's the decision framework for agent model selection.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--cyan)">Decision Framework</h3>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <div class="card" style="border-left:3px solid var(--blue); padding:14px 18px;">
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:4px;">Does the task modify code?</div>
+            <div style="font-family:var(--mono); font-size:13px;"><strong style="color:var(--text)">YES →</strong> <span style="color:var(--blue);">Sonnet</span> <span style="color:var(--text-dim);">(default for implementation)</span></div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--green); padding:14px 18px;">
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:4px;">Does the task read only?</div>
+            <div style="font-family:var(--mono); font-size:13px;"><strong style="color:var(--text)">YES →</strong> <span style="color:var(--green);">Haiku</span> <span style="color:var(--text-dim);">(cheap, fast, sufficient for exploration)</span></div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--purple); padding:14px 18px;">
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:4px;">Is it a critical design decision?</div>
+            <div style="font-family:var(--mono); font-size:13px;"><strong style="color:var(--text)">YES →</strong> <span style="color:var(--purple);">Opus</span> <span style="color:var(--text-dim);">(expensive but thorough)</span></div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--green); padding:14px 18px;">
+            <div style="font-size:13px; color:var(--text-dim); margin-bottom:4px;">Is it a routine check?</div>
+            <div style="font-family:var(--mono); font-size:13px;"><strong style="color:var(--text)">YES →</strong> <span style="color:var(--green);">Haiku</span> <span style="color:var(--text-dim);">(code style, lint rules, pattern matching)</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">Model Comparison</h3>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+          <div class="card" style="border-left:4px solid var(--green); padding:16px 20px;">
+            <div class="card-title"><code style="color:var(--green)">model: haiku</code></div>
+            <div class="card-body">Read-only tasks: exploration, search, pattern matching, documentation lookup. Significantly cheaper than Sonnet/Opus.<br><br><strong style="color:var(--text)">Use for:</strong> Explore agents, documentation agents, pattern detection.</div>
+          </div>
+          <div class="card" style="border-left:4px solid var(--blue); padding:16px 20px;">
+            <div class="card-title"><code style="color:var(--blue)">model: sonnet</code></div>
+            <div class="card-body">Implementation tasks: writing code, tests, documentation, refactoring. The workhorse model.<br><br><strong style="color:var(--text)">Use for:</strong> Build agents, test agents, docs agents. Default choice unless you have a reason not to.</div>
+          </div>
+          <div class="card" style="border-left:4px solid var(--purple); padding:16px 20px;">
+            <div class="card-title"><code style="color:var(--purple)">model: opus</code></div>
+            <div class="card-body">Architecture tasks: design decisions, complex refactors, security reviews, multi-system tradeoffs.<br><br><strong style="color:var(--text)">Use sparingly</strong> — substantially more expensive. Reserve for decisions that cost more to fix than to make correctly.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Start with Sonnet. Downgrade to Haiku if the task is read-only. Upgrade to Opus only when the cost of a wrong decision exceeds the cost of the tokens. Most agents should use Sonnet or Haiku.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Orchestrator Patterns — Agents in Action (NEW) -->
+  <div class="slide" data-index="20">
+    <div class="section-badge s6">● Orchestration</div>
+    <h2>Agents in action — orchestrating skills on the fly</h2>
+    <p>This is where agents stop being a concept and start doing work. A well-designed agent reads the codebase, detects the stack, and dynamically invokes the right skills — you don't hardcode the workflow.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--cyan)">The Agent Definition</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.7;">
+<span class="dim"># .claude/agents/code-reviewer.md</span>
+<span class="dim">---</span>
+<span class="flag">name</span>: <span class="str">code-reviewer</span>
+<span class="flag">model</span>: <span class="str">sonnet</span>
+<span class="flag">description</span>: <span class="str">Reviews code changes</span>
+<span class="dim">---</span>
+
+You are a code reviewer. When invoked:
+
+1. <strong style="color:var(--accent)">Detect the stack</strong>
+   Read package.json, scan src/
+   Identify: Express? Prisma? React?
+
+2. <strong style="color:var(--blue)">Route to skills</strong>
+   Express routes → /security-review
+   Prisma queries → /performance-review
+   React components → /accessibility-review
+
+3. <strong style="color:var(--green)">Synthesize</strong>
+   Combine findings into one report</div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">Runtime Behavior</h3>
+        <div class="flow" style="flex-direction:column; align-items:stretch; gap:10px; margin-top:12px;">
+          <div class="flow-step" style="background:rgba(249,115,22,0.12); color:var(--accent); width:100%; text-align:left; padding:12px 16px;">
+            <strong>1. Agent reads codebase</strong><br>
+            <span style="font-size:12px; color:var(--text-dim);">Scans package.json, file structure, imports</span>
+          </div>
+          <div style="text-align:center; color:var(--text-dim);">↓</div>
+          <div class="flow-step" style="background:rgba(59,130,246,0.12); color:var(--blue); width:100%; text-align:left; padding:12px 16px;">
+            <strong>2. Detects: Express + Prisma + React</strong><br>
+            <span style="font-size:12px; color:var(--text-dim);">Each stack element triggers a different skill</span>
+          </div>
+          <div style="text-align:center; color:var(--text-dim);">↓</div>
+          <div style="display:flex; gap:8px;">
+            <div class="flow-step" style="background:rgba(244,114,182,0.12); color:var(--pink); flex:1; padding:10px; font-size:13px;">
+              <strong>/security</strong><br><span style="font-size:11px;">API routes</span>
+            </div>
+            <div class="flow-step" style="background:rgba(168,85,247,0.12); color:var(--purple); flex:1; padding:10px; font-size:13px;">
+              <strong>/performance</strong><br><span style="font-size:11px;">DB queries</span>
+            </div>
+            <div class="flow-step" style="background:rgba(34,211,238,0.12); color:var(--cyan); flex:1; padding:10px; font-size:13px;">
+              <strong>/accessibility</strong><br><span style="font-size:11px;">Components</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px;">
+          <p style="font-size:14px;">The agent decides which skills to invoke based on what it finds — you don't hardcode the workflow.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: NEW — Section Break -->
+  <div class="slide" data-index="21" style="justify-content:center; align-items:center; text-align:center; background: radial-gradient(ellipse 500px 400px at 50% 50%, rgba(192,132,252,0.06) 0%, transparent 70%), radial-gradient(ellipse 400px 300px at 30% 70%, rgba(34,211,238,0.04) 0%, transparent 70%), var(--bg);">
+    <div class="section-badge s6" style="margin:0 auto 20px;">● Part 2</div>
+    <h1 style="font-size:52px; max-width:800px;">Extension layer complete.<br>Now: orchestration.</h1>
+    <p class="large" style="text-align:center; margin-top:20px; max-width:640px;">MCP, Hooks, and Agents extend what Claude can do. Now: how to scale it, script it, and recover when things go wrong.</p>
+    <div style="display:flex; gap:24px; margin-top:48px; justify-content:center;">
+      <div class="card" style="min-width:160px; border-top:2px solid var(--cyan);">
+        <div class="card-body" style="text-align:center;">Worktrees</div>
+      </div>
+      <div class="card" style="min-width:160px; border-top:2px solid var(--purple);">
+        <div class="card-body" style="text-align:center;">The Full Stack</div>
+      </div>
+      <div class="card" style="min-width:160px; border-top:2px solid var(--accent);">
+        <div class="card-body" style="text-align:center;">Headless Mode</div>
+      </div>
+      <div class="card" style="min-width:160px; border-top:2px solid var(--pink);">
+        <div class="card-body" style="text-align:center;">Recovery</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: Worktrees — Concept & Patterns (SPLIT from Worktrees) -->
+  <div class="slide" data-index="22">
+    <div class="section-badge s6">● Worktrees</div>
+    <h2>Git worktrees — parallel development</h2>
+    <p>Run multiple Claude Code sessions on the same repo without file conflicts. Each worktree gets its own branch and working directory.</p>
+    <div class="card-grid cols-2" style="margin-top:20px;">
+      <div class="card">
+        <span class="card-icon">🌳</span>
+        <div class="card-title">How It Works</div>
+        <div class="card-body">
+          <code style="color:var(--green)">claude -w feature-auth</code> creates:<br><br>
+          • Directory: <code style="color:var(--cyan)">.claude/worktrees/feature-auth/</code><br>
+          • Branch: <code style="color:var(--cyan)">worktree-feature-auth</code> from origin/HEAD<br>
+          • Full isolated working copy<br><br>
+          No changes → auto-removed on exit.<br>
+          Changes exist → prompt to keep/remove.
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Practical Patterns</div>
+        <div class="card-body">
+          <strong style="color:var(--accent)">Hotfix interrupt:</strong> Working on a feature, urgent bug comes in. Open new terminal, <code style="color:var(--green)">claude -w hotfix-auth</code>, fix and merge, return to feature work.<br><br>
+          <strong style="color:var(--blue)">Parallel features:</strong> Terminal 1: <code style="color:var(--green)">claude -w feature-a</code>. Terminal 2: <code style="color:var(--green)">claude -w feature-b</code>. Both running independently.<br><br>
+          <strong style="color:var(--green)">Sweet spot:</strong> 2–4 active worktrees. Beyond that, coordination overhead exceeds gains.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: Worktrees — Lifecycle & Mechanics (SPLIT from Worktrees) -->
+  <div class="slide" data-index="23">
+    <div class="section-badge s6">● Worktrees — Lifecycle &amp; Mechanics</div>
+    <h2>Worktree lifecycle — create, work, merge, clean up</h2>
+    <p>The full workflow from creating a worktree to merging the result and cleaning up.</p>
+    <div class="two-col" style="margin-top:16px;">
+      <div class="code-block" style="font-size:12px; line-height:1.7; margin:0;">
+<span class="dim"># 1. Create — starts a new worktree + branch</span>
+claude <span class="flag">-w</span> <span class="str">feature-auth</span>
+
+<span class="dim"># 2. Work — you're now in an isolated copy</span>
+<span class="dim">#    commits go to branch: worktree-feature-auth</span>
+
+<span class="dim"># 3. Merge back — from your main working directory</span>
+git merge <span class="str">worktree-feature-auth</span>
+<span class="dim"># or push the branch and open a PR:</span>
+git push origin <span class="str">worktree-feature-auth</span>
+gh pr create <span class="flag">--head</span> <span class="str">worktree-feature-auth</span>
+
+<span class="dim"># 4. Clean up — remove the worktree when done</span>
+git worktree remove <span class="str">.claude/worktrees/feature-auth</span>
+<span class="dim"># or force-remove if you want to discard:</span>
+git worktree remove <span class="flag">--force</span> <span class="str">.claude/worktrees/feature-auth</span></div>
+      <div>
+        <div class="code-block" style="font-size:12px; line-height:1.7; margin:0;">
+<span class="dim"># .worktreeinclude — gitignored files to</span>
+<span class="dim"># copy into new worktrees (missing otherwise!)</span>
+.env
+.env.local
+
+<span class="dim"># Optimize: symlink large dirs</span>
+<span class="dim"># worktree.symlinkDirectories: ["node_modules"]</span></div>
+        <ul class="concept-list" style="margin-top:14px;">
+          <li><span class="bullet" style="background:var(--green)"></span><span style="font-size:14px;"><strong>Merge:</strong> treat the worktree branch like any feature branch — merge or PR.</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span style="font-size:14px;"><strong>Clean up:</strong> <code style="color:var(--green)">git worktree remove</code> deletes the directory and unlinks the branch.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span style="font-size:14px;"><strong>List active:</strong> <code style="color:var(--green)">git worktree list</code> shows all worktrees and their branches.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: Worktree Arena — Compete, Then Choose -->
+  <div class="slide" data-index="24">
+    <div class="section-badge s6">● Worktrees</div>
+    <h2>Worktree arena — compete, then choose</h2>
+    <p>The real power of worktrees: run <strong>competing AI implementations in parallel</strong>, then pick the winner yourself. You stay the decision-maker.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--accent)">Use Case 1: Compare Implementations</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.8;">
+<span class="dim"># Terminal 1 — approach A: recursive</span>
+claude <span class="flag">-w</span> <span class="str">approach-recursive</span>
+<span class="str">"implement parseConfig using recursion"</span>
+
+<span class="dim"># Terminal 2 — approach B: iterative</span>
+claude <span class="flag">-w</span> <span class="str">approach-iterative</span>
+<span class="str">"implement parseConfig using iteration"</span>
+
+<span class="dim"># You compare both, pick the better one</span>
+diff <span class="flag">-u</span> \
+  .claude/worktrees/approach-recursive/src/config.ts \
+  .claude/worktrees/approach-iterative/src/config.ts</div>
+        <div class="callout" style="margin-top:12px; font-size:13px;">
+          <p>Same problem, different strategies, <strong>you judge</strong>. This is human-in-the-loop at its best — AI does the grunt work, you make the design call.</p>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">Use Case 2: Compare Different LLMs</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.8;">
+<span class="dim"># Each worktree has its own settings.local.json</span>
+<span class="dim"># Override the LLM provider per worktree</span>
+
+<span class="dim"># Worktree A — uses Claude Opus</span>
+<span class="dim">.claude/worktrees/opus-impl/</span>
+  <span class="dim">└──</span> .claude/settings.local.json
+      <span class="str">{ "model": "claude-opus-4-6" }</span>
+
+<span class="dim"># Worktree B — uses a local model via Ollama</span>
+<span class="dim">.claude/worktrees/local-llm/</span>
+  <span class="dim">└──</span> .claude/settings.local.json
+      <span class="str">{ "model": "ollama/deepseek-r1" }</span>
+
+<span class="dim"># Worktree C — uses LM Studio / GLM / MiniMax</span>
+<span class="dim"># Same pattern — override in settings.local.json</span></div>
+        <div class="callout" style="margin-top:12px; font-size:13px;">
+          <p>Each worktree gets its own <code style="color:var(--green)">.claude/settings.local.json</code> — the LLM config is <strong>per-worktree</strong>. You can't run two different models in the same shell, but with worktrees each gets its own config and its own Claude instance.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-grid cols-3" style="margin-top:16px;">
+      <div class="card" style="border-top:3px solid var(--accent); padding:14px;">
+        <div class="card-title" style="font-size:14px;">Why not just branches?</div>
+        <div class="card-body" style="font-size:13px;">Branches share the working directory. You can't run two Claude instances on the same directory — they'd conflict on file writes. Worktrees give true isolation.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--purple); padding:14px;">
+        <div class="card-title" style="font-size:14px;">The arena pattern</div>
+        <div class="card-body" style="font-size:13px;">Spin up 2–3 competing implementations → let each run independently → diff the results → merge the winner → delete the rest. Treat AI like candidates, not oracles.</div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green); padding:14px;">
+        <div class="card-title" style="font-size:14px;">Human stays in the loop</div>
+        <div class="card-body" style="font-size:13px;">AI generates options, you evaluate tradeoffs — readability, performance, maintainability. This is how you stay sharp while still leveraging AI speed.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE: The Complete Picture (MOVED before Headless/Recovery) -->
+  <div class="slide" data-index="25">
+    <div class="section-badge s6">● Full Stack</div>
+    <h2>The complete picture — both sessions</h2>
+    <p>Everything you've learned across two sessions, assembled into one system.</p>
+    <div class="two-col" style="margin-top:24px;">
+      <div>
+        <h3 style="color:var(--cyan)">The full instruction stack</h3>
+        <div class="code-block" style="font-size:12px; line-height:2.2; color:var(--text);">
+<span class="dim">~/.claude/settings.json</span>     <span class="flag">→ global defaults</span>
+<span class="dim">.claude/settings.json</span>       <span style="color:var(--blue);">→ team shared config</span>
+<span>CLAUDE.md</span>                   <span style="color:var(--accent);">→ always-loaded knowledge</span>
+<span class="dim">.claude/rules/*.md</span>          <span style="color:var(--purple);">→ conditional rules</span>
+<span class="dim">.claude/skills/*/SKILL.md</span>   <span style="color:var(--pink);">→ on-demand instructions</span>
+<span class="dim">.mcp.json</span>                   <span style="color:var(--purple);">→ external tool connections</span>
+<span class="dim">hooks</span>                       <span style="color:var(--pink);">→ automatic guardrails</span>
+<span class="dim">subagents</span>                   <span style="color:var(--cyan);">→ isolated specialists</span>
+<span class="dim">worktrees</span>                   <span style="color:var(--green);">→ parallel development</span>
+<span class="dim">permission modes</span>            <span style="color:var(--blue);">→ autonomy dial</span>
+<span class="dim">headless mode</span>               <span style="color:var(--accent);">→ scripts &amp; CI/CD</span>
+<span class="dim">session management</span>          <span style="color:var(--green);">→ /clear /compact /cost</span></div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">One sentence per layer</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong style="color:var(--green)">Settings</strong> → what Claude is <em>allowed</em> to do</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong style="color:var(--accent)">CLAUDE.md</strong> → what Claude always <em>knows</em></span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong style="color:var(--purple)">Rules</strong> → what Claude knows in <em>specific directories</em></span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong style="color:var(--pink)">Skills</strong> → what Claude does when <em>triggered</em></span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong style="color:var(--purple)">MCP</strong> → what external tools Claude can <em>access</em></span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong style="color:var(--pink)">Hooks</strong> → what happens <em>automatically</em> at lifecycle events</span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong style="color:var(--cyan)">Agents</strong> → who Claude can <em>delegate</em> to</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong style="color:var(--green)">Worktrees</strong> → how many things Claude can do <em>at once</em></span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong style="color:var(--blue)">Modes</strong> → how much <em>autonomy</em> Claude gets</span></li>
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong style="color:var(--accent)">Headless</strong> → Claude in <em>scripts and CI</em></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:24px;">
+      <p>Each layer does one thing well. Together they create a development environment where Claude arrives knowing your project, follows your standards, connects to your tools, and can work in parallel — all while you stay in control.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: NEW — Real-World Production Setup -->
+  <div class="slide" data-index="26">
+    <div class="section-badge s4">● Real World</div>
+    <h2>A reference setup — what to aim for</h2>
+    <p>This is a realistic target for a team using Claude Code daily. You don't need all of this on day one — build up incrementally.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--purple)">The .claude/ directory</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.8;">
+<span class="dim">.claude/</span>
+<span class="dim">├──</span> settings.json          <span class="flag"># hooks + permissions</span>
+<span class="dim">├──</span> settings.local.json    <span class="flag"># personal overrides (gitignored)</span>
+<span class="dim">├──</span> agents/
+<span class="dim">│   ├──</span> explorer.md        <span class="flag"># haiku, read-only</span>
+<span class="dim">│   ├──</span> reviewer.md        <span class="flag"># sonnet, read + write</span>
+<span class="dim">│   └──</span> architect.md       <span class="flag"># opus, read-only</span>
+<span class="dim">├──</span> skills/
+<span class="dim">│   ├──</span> review/SKILL.md    <span class="flag"># code review checklist</span>
+<span class="dim">│   ├──</span> deploy/SKILL.md    <span class="flag"># deployment workflow</span>
+<span class="dim">│   └──</span> test/SKILL.md      <span class="flag"># TDD workflow</span>
+<span class="dim">└──</span> rules/
+<span class="dim">    ├──</span> api.md             <span class="flag"># paths: ["src/api/**"]</span>
+<span class="dim">    ├──</span> frontend.md        <span class="flag"># paths: ["src/components/**"]</span>
+<span class="dim">    └──</span> db.md              <span class="flag"># paths: ["prisma/**", "migrations/**"]</span></div>
+        <div class="code-block" style="font-size:12px; line-height:1.8; margin-top:12px;">
+<span class="dim"># Root files</span>
+<span class="dim">.mcp.json</span>                  <span class="flag"># qdrant, context7, playwright</span>
+<span class="dim">.worktreeinclude</span>           <span class="flag"># .env, .env.local</span>
+<span class="dim">CLAUDE.md</span>                  <span class="flag"># &lt;80 lines, project identity</span></div>
+      </div>
+      <div>
+        <h3 style="color:var(--purple)">What each layer does in practice</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--accent)"></span><span><strong>CLAUDE.md</strong> — "We use Next.js 15 + TypeScript 5.8. All API routes need auth middleware. Never commit .env files." <span style="color:var(--text-dim);">(always present, team-shared)</span></span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Rules</strong> — "API routes validate with Zod. React components use server components by default. Migrations never drop columns." <span style="color:var(--text-dim);">(path-scoped)</span></span></li>
+          <li><span class="bullet" style="background:var(--pink)"></span><span><strong>Skills</strong> — "Run /review before every PR. Run /deploy for production releases. Run /test when implementing new features." <span style="color:var(--text-dim);">(on-demand)</span></span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>MCP</strong> — "Qdrant for semantic search over ADRs. Context7 for current library docs. Playwright for visual testing." <span style="color:var(--text-dim);">(always connected)</span></span></li>
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>Hooks</strong> — "Auto-format on every file write. Block changes to production configs. Lint-check staged files before commit." <span style="color:var(--text-dim);">(automatic)</span></span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>Agents</strong> — "Explorer for understanding new areas. Reviewer for PR checks. Architect for design decisions." <span style="color:var(--text-dim);">(delegated)</span></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Start with CLAUDE.md and one hook — you can have a basic setup in an hour. The full stack builds up over your first week as you discover what your team actually needs. The layers compose incrementally.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Headless Mode — Claude Code in Scripts & CI (MOVED after synthesis) -->
+  <div class="slide" data-index="27">
+    <div class="section-badge s6">● Headless Mode</div>
+    <h2>Headless mode — Claude in scripts and CI</h2>
+    <p>Claude Code isn't just interactive. With <code style="color:var(--cyan)">claude -p</code> (pipe mode), it becomes a programmable tool you can embed in scripts, CI pipelines, and automation.</p>
+    <div class="two-col" style="margin-top:20px;">
+      <div>
+        <h3 style="color:var(--cyan)">Pipe Mode Basics</h3>
+        <div class="code-block" style="font-size:12px; line-height:1.8;">
+<span class="dim"># One-shot prompt — returns result to stdout</span>
+claude <span class="flag">-p</span> <span class="str">"explain what this project does"</span>
+
+<span class="dim"># Pipe input from another command</span>
+git diff | claude <span class="flag">-p</span> <span class="str">"review this diff for bugs"</span>
+
+<span class="dim"># Structured output for scripts</span>
+claude <span class="flag">-p</span> <span class="flag">--output-format</span> <span class="str">json</span> \
+  <span class="str">"list all API routes as JSON"</span>
+
+<span class="dim"># Use in CI — auto-review PRs</span>
+git diff main...HEAD | claude <span class="flag">-p</span> \
+  <span class="str">"review for security issues, output pass/fail"</span></div>
+      </div>
+      <div>
+        <h3 style="color:var(--cyan)">Where It Fits</h3>
+        <ul class="concept-list">
+          <li><span class="bullet" style="background:var(--cyan)"></span><span><strong>CI/CD pipelines</strong> — auto-review PRs, generate changelogs, check for security issues on every push.</span></li>
+          <li><span class="bullet" style="background:var(--green)"></span><span><strong>Shell scripts</strong> — chain Claude into your existing automation. <code style="color:var(--green)">git log | claude -p "summarize this week's changes"</code></span></li>
+          <li><span class="bullet" style="background:var(--purple)"></span><span><strong>Batch operations</strong> — process multiple files, generate tests for untested modules, migrate patterns across a codebase.</span></li>
+          <li><span class="bullet" style="background:var(--blue)"></span><span><strong>GitHub Actions</strong> — <code style="color:var(--green)">anthropics/claude-code-action@v1</code> brings Claude Code into your PR workflow. <code style="color:var(--green)">@claude</code> mentions in issue comments.</span></li>
+        </ul>
+        <div class="divider"></div>
+        <p style="font-size:14px; color:var(--text-dim);"><strong style="color:var(--text)">Key:</strong> your CLAUDE.md, hooks, and MCP servers all apply in headless mode. Same guardrails, no interactive shell.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>Interactive Claude Code is your pair programmer. Headless Claude Code is your automation layer. Same engine, same configuration, different interface. Master both.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Recovery Strategies — When Things Go Wrong (MOVED after Headless) -->
+  <div class="slide" data-index="28">
+    <div class="section-badge s1">● Recovery</div>
+    <h2>When things go wrong — and they will</h2>
+    <p>Claude will occasionally go off the rails — wrong architecture, massive diffs, broken tests. The question isn't if, it's how fast you recover.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <span class="card-icon">🔍</span>
+        <div class="card-title">Before Committing</div>
+        <div class="card-body">
+          <strong style="color:var(--text)">Always review the diff.</strong><br><br>
+          <code style="color:var(--green); font-size:12px;">git diff</code> — see what changed<br>
+          <code style="color:var(--green); font-size:12px;">git diff --stat</code> — see scope<br><br>
+          If the diff is larger than expected, something went wrong. Don't commit blindly.
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <span class="card-icon">⏪</span>
+        <div class="card-title">Rolling Back</div>
+        <div class="card-body">
+          <strong style="color:var(--text)">Small commits = easy recovery.</strong><br><br>
+          <code style="color:var(--green); font-size:12px;">git stash</code> — save and reset<br>
+          <code style="color:var(--green); font-size:12px;">git checkout -- .</code> — discard all<br>
+          <code style="color:var(--green); font-size:12px;">git reset HEAD~1</code> — undo last commit<br><br>
+          Commit after every successful step. Never let Claude build for 20 minutes without a checkpoint.
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <span class="card-icon">🧹</span>
+        <div class="card-title">Context Recovery</div>
+        <div class="card-body">
+          <strong style="color:var(--text)">When Claude gets confused:</strong><br><br>
+          <code style="color:var(--cyan); font-size:12px;">/clear</code> — fresh session<br>
+          <code style="color:var(--cyan); font-size:12px;">/compact</code> — compress context<br>
+          <code style="color:var(--cyan); font-size:12px;">Escape (2x)</code> — interrupt a runaway<br><br>
+          A new session with a clear prompt beats fighting a confused one.
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px; border-color:var(--accent); background:rgba(249,115,22,0.08);">
+      <p>The #1 recovery pattern: <strong>commit early, commit often</strong>. Every passing test, every working feature — commit it. Git is your undo button. A 30-second commit saves a 30-minute re-implementation.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: Going Further (EXISTING, was data-index="8") -->
+  <div class="slide" data-index="29">
+    <div class="section-badge s1">● What's Next</div>
+    <h2>Going further</h2>
+    <p>What this guide covers is the foundation and the advanced layer. Here's what lies further ahead for those who want to go deeper.</p>
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card" style="border-top:3px solid var(--accent);">
+        <span class="card-icon">🔌</span>
+        <div class="card-title">Claude Agent SDK</div>
+        <div class="card-body">
+          Use Claude Code programmatically from your own scripts and applications.<br><br>
+          <strong style="color:var(--text)">TypeScript:</strong> <code style="color:var(--green)">@anthropic-ai/claude-agent-sdk</code><br>
+          <strong style="color:var(--text)">Python:</strong> <code style="color:var(--green)">claude-agent-sdk</code><br><br>
+          <code style="color:var(--cyan)">query()</code> async generator for streaming. Headless mode with <code style="color:var(--cyan)">claude -p "prompt"</code> for scripts. <code style="color:var(--cyan)">--json-schema</code> for typed output in pipelines.
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--blue);">
+        <span class="card-icon">🚀</span>
+        <div class="card-title">CI/CD Integration</div>
+        <div class="card-body">
+          Claude Code in your deployment pipeline.<br><br>
+          <strong style="color:var(--text)">GitHub Actions:</strong> <code style="color:var(--green)">anthropics/claude-code-action@v1</code><br>
+          <strong style="color:var(--text)">GitLab CI/CD:</strong> Also supported<br><br>
+          Automated PR review on every push. <code style="color:var(--cyan)">@claude</code> mentions in issues. Cron-scheduled maintenance tasks. Your CLAUDE.md applies automatically.
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green);">
+        <span class="card-icon">📦</span>
+        <div class="card-title">Build & Publish Plugins</div>
+        <div class="card-body">
+          Bundle your skills, hooks, agents, and MCP servers into distributable packages.<br><br>
+          <strong style="color:var(--text)">Distribute via:</strong> GitHub, npm, marketplace<br>
+          <strong style="color:var(--text)">Manage:</strong> <kbd>/plugin</kbd> command<br><br>
+          Create organizational standards as plugins. Share across teams. Enforce consistency automatically.
+        </div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:20px;">
+      <p>The expert-level unlock: Claude Code is not just a dev tool — it's a platform. The SDK and headless mode let you build systems that use Claude Code as infrastructure.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE: Your Next Steps -->
+  <div class="slide" data-index="30" style="justify-content:center; align-items:center; text-align:center; background: radial-gradient(ellipse 600px 400px at 50% 60%, rgba(74,222,128,0.08) 0%, transparent 70%), var(--bg);">
+    <h3>Your Next Steps</h3>
+    <h1 style="font-size:48px; max-width:800px;">Build your<br>complete setup</h1>
+    <div style="display:flex; gap:16px; margin-top:40px; text-align:left; max-width:1000px; flex-wrap:wrap; justify-content:center;">
+      <div class="card" style="flex:1; min-width:180px; border-top:3px solid var(--purple);">
+        <span class="card-icon" style="font-size:36px;">1</span>
+        <div class="card-title">Add an MCP server</div>
+        <div class="card-body">Add an MCP server to your project (<code style="color:var(--green); font-size:12px;">.mcp.json</code>). Pick one that fits your daily work — Qdrant, Context7, Playwright, or browse the registry.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:180px; border-top:3px solid var(--pink);">
+        <span class="card-icon" style="font-size:36px;">2</span>
+        <div class="card-title">Set up one hook</div>
+        <div class="card-body">Add a PostToolUse Prettier hook or a PreToolUse safety blocker. Make it fire. Feel it work.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:180px; border-top:3px solid var(--cyan);">
+        <span class="card-icon" style="font-size:36px;">3</span>
+        <div class="card-title">Create a custom agent</div>
+        <div class="card-body">Write an explorer or reviewer agent in <code style="color:var(--green); font-size:12px;">.claude/agents/</code>. Invoke it. Check <kbd>/cost</kbd>.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:180px; border-top:3px solid var(--green);">
+        <span class="card-icon" style="font-size:36px;">4</span>
+        <div class="card-title">Try a worktree</div>
+        <div class="card-body">Run <code style="color:var(--green); font-size:12px;">claude -w feature-x</code>. Build something in isolation. See the workflow in action.</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:32px; max-width:700px; text-align:left;">
+      <p>Goal: push a <code style="color:var(--cyan)">.claude/</code> directory to your project with at least <strong>settings.json</strong> (with hooks), <strong>one agent</strong>, and <strong>one skill</strong>. Share it in the group. Compare setups.</p>
+    </div>
+    <p style="margin-top:20px; font-size:14px; color:var(--text-dim); font-family:var(--mono);">The best way to learn this is to set it up for your own project — not a tutorial project.</p>
+  </div>
+
+  <!-- SLIDE 21: Closing (EXISTING, was data-index="9") -->
+  <div class="slide" data-index="31" style="justify-content:center; align-items:center; text-align:center; background: radial-gradient(ellipse 600px 400px at 50% 60%, rgba(192,132,252,0.06) 0%, transparent 70%), radial-gradient(ellipse 400px 300px at 30% 30%, rgba(34,211,238,0.04) 0%, transparent 70%), var(--bg);">
+    <h3>Closing</h3>
+    <h1 style="font-size:48px; max-width:800px;">What you now have</h1>
+    <div style="display:flex; gap:16px; margin-top:40px; text-align:left; max-width:1100px; flex-wrap:wrap; justify-content:center;">
+      <div class="card" style="flex:1; min-width:170px; border-top:3px solid var(--accent);">
+        <div class="card-title">A Framework</div>
+        <div class="card-body">The 5-phase methodology for disciplined agentic development.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:170px; border-top:3px solid var(--blue);">
+        <div class="card-title">Configuration</div>
+        <div class="card-body">Settings, CLAUDE.md, rules, skills — 80% of Claude's effectiveness.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:170px; border-top:3px solid var(--purple);">
+        <div class="card-title">Extension</div>
+        <div class="card-body">MCP, hooks, agents — new senses, reflexes, and specialists.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:170px; border-top:3px solid var(--cyan);">
+        <div class="card-title">Orchestration</div>
+        <div class="card-body">Worktrees, modes, headless — parallel, autonomous, scriptable.</div>
+      </div>
+      <div class="card" style="flex:1; min-width:170px; border-top:3px solid var(--green);">
+        <div class="card-title">Discipline</div>
+        <div class="card-body">Recovery patterns, session hygiene, commit checkpoints.</div>
+      </div>
+    </div>
+    <p style="margin-top:40px; font-size:17px; color:var(--text); max-width:600px;">Code is generated. Architecture is engineered. The discipline is yours.</p>
+  </div>
+
+</div>
+
+<!-- Header -->
+<div class="slide-header">
+  <span class="header-title">Agentic Software Engineering</span>
+  <span class="header-author">Foyzul Karim — Senior Software Engineer, Domain (CoStar) Australia</span>
+</div>
+
+<!-- Footer -->
+<div class="slide-footer">
+  <a href="https://linkedin.com/in/foyzul" class="footer-link" target="_blank" rel="noopener">linkedin.com/in/foyzul</a>
+  <span class="key-hint">← → arrows</span>
+  <div class="footer-nav">
+    <button id="prev" aria-label="Previous slide">←</button>
+    <span id="counter">1 / 29</span>
+    <button id="next" aria-label="Next slide">→</button>
+  </div>
+</div>
+<div class="speaker-notes" id="notes"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+  let notesVisible = false;
+
+  function goTo(n) {
+    if (n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    current = n;
+    slides[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    document.getElementById('progress').style.width = `${((current + 1) / total) * 100}%`;
+    updateNotes();
+  }
+
+  function updateNotes() {
+    const notesEl = document.getElementById('notes');
+    const noteData = slides[current].querySelector('[data-notes]');
+    if (noteData && notesVisible) {
+      notesEl.innerHTML = noteData.getAttribute('data-notes');
+      notesEl.classList.add('visible');
+    } else {
+      notesEl.classList.remove('visible');
+    }
+  }
+
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.key === 'End') { e.preventDefault(); goTo(total - 1); }
+    if (e.key === 'n' || e.key === 'N') {
+      notesVisible = !notesVisible;
+      updateNotes();
+    }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) { diff > 0 ? goTo(current + 1) : goTo(current - 1); }
+  });
+
+  goTo(0);
+</script>
+
+</body>
+</html>
